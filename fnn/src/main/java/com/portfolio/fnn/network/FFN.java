@@ -215,13 +215,7 @@ public class FFN {
         sb.append("]");
         json.append("    \"layerSizes\": ").append(sb).append("\n");
         json.append("  },\n");
-        json.append("  \"layers\": [");
-        for (int i = 0; i < layers.length; i++) {
-            json.append(layers[i]);
-            if (i < layers.length - 1)
-                json.append(", ");
-        }
-        json.append("],\n \"weights\": [");
+        json.append(" \"weights\": [");
 
         for (int l = 0; l < weights.length; l++) {
             json.append("[");
@@ -259,6 +253,14 @@ public class FFN {
 
     private void saveToBin(String filename) throws IOException {
         try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(filename))) {
+            // metadata
+            dos.writeInt(epochsTrained);
+            dos.writeDouble(learningRate);
+            dos.writeDouble(finalLoss);
+            dos.writeDouble(testAccuracy);
+            dos.writeLong(trainingTimeMs);
+            dos.writeUTF(trainingDate);
+
             dos.writeInt(layers.length);
             for (int layer : layers) {
                 dos.writeInt(layer);
@@ -307,7 +309,7 @@ public class FFN {
             double[][] trainLabels = oneHotEncode(trainingData.getLabels());
             ffn.train(trainingData.getImages(), trainLabels, 0.01, 1);
             ffn.evaluate(testData.getImages(), testData.getLabels());
-            ffn.saveModel("sample", true);
+            ffn.saveModel("sample", false);
 
         } catch (IOException e) {
             System.out.println("Error loading MNIST data: " + e.getMessage());
