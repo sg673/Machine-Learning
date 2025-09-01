@@ -37,4 +37,7 @@ out/
 .vscode/
 
 ### Training Data ### 
-src/main/resources/archive/
+fnn/src/main/resources/archive/
+
+### Saved Models ###
+savedModels/

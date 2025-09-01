@@ -1,7 +1,12 @@
 package com.portfolio.fnn.network;
 
-import java.util.Random;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Random;
 
 public class FFN {
     private final int[] layers;
@@ -176,6 +181,89 @@ public class FFN {
         System.out.printf("Test accuracy: %.2f%%%n", accuracy * 100);
     }
 
+    private void saveToJson(String filename) throws IOException {
+        StringBuilder json = new StringBuilder();
+        json.append("{\n \"layers\": [");
+        for (int i = 0; i < layers.length; i++) {
+            json.append(layers[i]);
+            if (i < layers.length - 1)
+                json.append(", ");
+        }
+        json.append("],\n \"weights\": [");
+
+        for (double[][] weight : weights) {
+            json.append("[");
+            for (int i = 0; i < weight.length; i++) {
+                json.append("[");
+                for (int j = 0; j < weight[i].length; j++) {
+                    json.append(weight[i][j]);
+                    if (j < weight[i].length - 1) {
+                        json.append(", ");
+                    }
+                }
+                json.append("]\n");
+                if (i < weight.length - 1) {
+                    json.append(", ");
+                }
+            }
+        }
+        json.append("], \n \"biases\": [");
+        for (int l = 0; l < biases.length; l++) {
+            json.append("[");
+            for (int j = 0; j < biases[l].length; j++) {
+                json.append(biases[l][j]);
+                if (j < biases[l].length - 1)
+                    json.append(", ");
+            }
+            json.append("]\n");
+            if (l < biases.length - 1)
+                json.append(", ");
+        }
+        json.append("]\n}");
+        Files.write(Paths.get(filename), json.toString().getBytes());
+
+    }
+
+    private void saveToBin(String filename) throws IOException {
+        try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(filename))) {
+            dos.writeInt(layers.length);
+            for (int layer : layers) {
+                dos.writeInt(layer);
+            }
+            for (double[][] layer : weights) {
+                for (double[] neuron : layer) {
+                    for (double weight : neuron) {
+                        dos.writeDouble(weight);
+                    }
+                }
+            }
+
+            for (double[] layer : biases) {
+                for (double bias : layer) {
+                    dos.writeDouble(bias);
+                }
+            }
+        }
+    }
+
+    public void saveModel(String modelName, Boolean json) throws IOException {
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd--HH-mm-ss"));
+        Path dir = Paths.get("savedModels", modelName);
+        Files.createDirectories(dir);
+        String filename = dir.resolve(modelName + "-" + timestamp + (json ? ".json" : ".fnn")).toString();
+
+        try {
+            if (json) {
+                saveToJson(filename);
+            } else {
+                saveToBin(filename);
+            }
+            System.out.println("Model saved to " + modelName);
+        } catch (IOException e) {
+            System.out.println("Error saving model: " + e.getMessage());
+        }
+    }
+
     private static void mnist() {
         System.out.println("Starting FFN for MNIST...");
         FFN ffn = new FFN(784, 128, 10);
@@ -185,7 +273,7 @@ public class FFN {
 
             double[][] trainLabels = oneHotEncode(trainingData.getLabels());
             ffn.train(trainingData.getImages(), trainLabels, 0.01, 10);
-
+            ffn.saveModel("tmp", false);
             ffn.evaluate(testData.getImages(), testData.getLabels());
 
         } catch (IOException e) {

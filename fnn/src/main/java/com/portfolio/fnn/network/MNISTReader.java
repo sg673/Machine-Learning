@@ -1,6 +1,7 @@
 package com.portfolio.fnn.network;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.IOException;
 
 public class MNISTReader {
     public static class Dataset {
@@ -37,6 +38,7 @@ public class MNISTReader {
 
     private static double[][] readImages(String path) throws IOException {
         try (DataInputStream dis = new DataInputStream(MNISTReader.class.getResourceAsStream(path))) {
+            @SuppressWarnings("unused")
             int magicNumber = dis.readInt();
             int numImages = dis.readInt();
             int rows = dis.readInt();
@@ -54,6 +56,7 @@ public class MNISTReader {
 
     private static int[] readLabels(String path) throws IOException {
         try (DataInputStream dis = new DataInputStream(MNISTReader.class.getResourceAsStream(path))) {
+            @SuppressWarnings("unused")
             int magicNumber = dis.readInt();
             int numLabels = dis.readInt();
 
