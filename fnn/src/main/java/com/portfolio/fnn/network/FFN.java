@@ -14,6 +14,14 @@ public class FFN {
     private double[][] biases;
     private final Random rand = new Random();
 
+    // metadata fields
+    private int epochsTrained = 0;
+    private double learningRate = 0.0;
+    private double finalLoss = 0.0;
+    private double testAccuracy = 0.0;
+    private long trainingTimeMs = 0;
+    private String trainingDate = "";
+
     private static double sigmoid(double x) {
         return 1.0 / (1.0 + Math.exp(-x));
     }
@@ -78,9 +86,13 @@ public class FFN {
     }
 
     public void train(double[][] x, double[][] y, double lr, int epochs) {
+        this.learningRate = lr;
+        this.trainingDate = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+
         LossMonitor monitor = new LossMonitor(1e-6, 5);
         long startTime = System.currentTimeMillis();
         for (int epoch = 0; epoch < epochs; epoch++) {
+            this.epochsTrained++;
             System.out.print("\rEpoch " + epoch + ": " + monitor.getETA(epoch, epochs));
             double loss = 0.0;
 
@@ -124,14 +136,17 @@ public class FFN {
                 }
             }
             if (epoch % 500 == 0 && epoch != 0) {
+                this.finalLoss = loss / x.length;
                 monitor.printStats(epoch, loss / x.length);
             }
 
             if (monitor.shouldStop(loss / x.length, epoch / 5)) {
+                this.finalLoss = loss / x.length;
                 System.out.println("Early stopping at epoch " + epoch + ": " + (loss / x.length));
                 break;
             }
         }
+        this.trainingTimeMs = System.currentTimeMillis() - startTime;
         System.out.printf("\nTraining complete in %dm %ds%n", (System.currentTimeMillis() - startTime) / 60000,
                 (System.currentTimeMillis() - startTime) % 60000 / 1000);
     }
@@ -177,13 +192,30 @@ public class FFN {
                 correct++;
             }
         }
-        double accuracy = (double) correct / testImages.length;
-        System.out.printf("Test accuracy: %.2f%%%n", accuracy * 100);
+        this.testAccuracy = (double) correct / testImages.length;
+        System.out.printf("Test accuracy: %.2f%%%n", testAccuracy * 100);
     }
 
     private void saveToJson(String filename) throws IOException {
         StringBuilder json = new StringBuilder();
-        json.append("{\n \"layers\": [");
+        json.append("{\n  \"metadata\": {\n");
+        json.append("    \"epochsTrained\": ").append(epochsTrained).append(",\n");
+        json.append("    \"learningRate\": ").append(learningRate).append(",\n");
+        json.append("    \"finalLoss\": ").append(finalLoss).append(",\n");
+        json.append("    \"testAccuracy\": ").append(testAccuracy).append(",\n");
+        json.append("    \"trainingTimeMs\": ").append(trainingTimeMs).append(",\n");
+        json.append("    \"trainingDate\": \"").append(trainingDate).append("\",\n");
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (int i = 0; i < layers.length; i++) {
+            sb.append(layers[i]);
+            if (i < layers.length - 1)
+                sb.append(", ");
+        }
+        sb.append("]");
+        json.append("    \"layerSizes\": ").append(sb).append("\n");
+        json.append("  },\n");
+        json.append("  \"layers\": [");
         for (int i = 0; i < layers.length; i++) {
             json.append(layers[i]);
             if (i < layers.length - 1)
@@ -191,21 +223,22 @@ public class FFN {
         }
         json.append("],\n \"weights\": [");
 
-        for (double[][] weight : weights) {
+        for (int l = 0; l < weights.length; l++) {
             json.append("[");
-            for (int i = 0; i < weight.length; i++) {
+            for (int i = 0; i < weights[l].length; i++) {
                 json.append("[");
-                for (int j = 0; j < weight[i].length; j++) {
-                    json.append(weight[i][j]);
-                    if (j < weight[i].length - 1) {
+                for (int j = 0; j < weights[l][i].length; j++) {
+                    json.append(weights[l][i][j]);
+                    if (j < weights[l][i].length - 1)
                         json.append(", ");
-                    }
                 }
-                json.append("]\n");
-                if (i < weight.length - 1) {
-                    json.append(", ");
-                }
+                json.append("]");
+                if (i < weights[l].length - 1)
+                    json.append(", \n");
             }
+            json.append("]");
+            if (l < weights.length - 1)
+                json.append(", \n");
         }
         json.append("], \n \"biases\": [");
         for (int l = 0; l < biases.length; l++) {
@@ -215,9 +248,9 @@ public class FFN {
                 if (j < biases[l].length - 1)
                     json.append(", ");
             }
-            json.append("]\n");
+            json.append("]");
             if (l < biases.length - 1)
-                json.append(", ");
+                json.append(",\n");
         }
         json.append("]\n}");
         Files.write(Paths.get(filename), json.toString().getBytes());
@@ -272,9 +305,9 @@ public class FFN {
             MNISTReader.Dataset testData = MNISTReader.loadTest();
 
             double[][] trainLabels = oneHotEncode(trainingData.getLabels());
-            ffn.train(trainingData.getImages(), trainLabels, 0.01, 10);
-            ffn.saveModel("tmp", false);
+            ffn.train(trainingData.getImages(), trainLabels, 0.01, 1);
             ffn.evaluate(testData.getImages(), testData.getLabels());
+            ffn.saveModel("sample", true);
 
         } catch (IOException e) {
             System.out.println("Error loading MNIST data: " + e.getMessage());
