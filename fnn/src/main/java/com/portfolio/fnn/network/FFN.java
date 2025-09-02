@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Random;
 
 import static com.portfolio.fnn.util.parser.JsonParser.*;
@@ -395,6 +396,24 @@ public class FFN {
         } catch (IOException e) {
             System.out.println("Error loading MNIST data: " + e.getMessage());
         }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof FFN)) {
+            return false;
+        }
+        FFN that = (FFN) other;
+        return Arrays.equals(this.layers, that.layers) && Arrays.deepEquals(this.biases, that.biases)
+                && Arrays.deepEquals(this.weights, that.weights);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(layers);
+        result = 31 * result + Arrays.deepHashCode(weights);
+        result = 31 * result + Arrays.deepHashCode(biases);
+        return result;
     }
 
     public static void main(String[] args) {
