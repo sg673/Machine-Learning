@@ -1,12 +1,18 @@
 package com.portfolio.fnn.network;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
+
+import static com.portfolio.fnn.util.parser.JsonParser.*;
 
 public class FFN {
     private final int[] layers;
@@ -296,6 +302,81 @@ public class FFN {
             System.out.println("Model saved to " + modelName);
         } catch (IOException e) {
             System.out.println("Error saving model: " + e.getMessage());
+        }
+    }
+
+    public static FFN loadFromJson(String filename) throws IOException {
+        String content = new String(Files.readAllBytes(Paths.get(filename)));
+
+        int epochsTrained = parseIntValue(content, "epochsTrained");
+        double learningRate = parseDoubleValue(content, "learningRate");
+        double finalLoss = parseDoubleValue(content, "finalLoss");
+        double testAccuracy = parseDoubleValue(content, "testAccuracy");
+        long trainingTimeMs = parseLongValue(content, "trainingTimeMs");
+        String trainingDate = parseStringValue(content, "trainingDate");
+
+        String layerSizesStr = parseArrayValue(content, "layerSizes");
+        String[] layerSizesParts = layerSizesStr.split(",");
+        int[] layers = new int[layerSizesParts.length];
+        for (int i = 0; i < layerSizesParts.length; i++) {
+            layers[i] = Integer.parseInt(layerSizesParts[i].trim());
+        }
+        FFN ffn = new FFN(layers);
+        ffn.epochsTrained = epochsTrained;
+        ffn.learningRate = learningRate;
+        ffn.finalLoss = finalLoss;
+        ffn.testAccuracy = testAccuracy;
+        ffn.trainingTimeMs = trainingTimeMs;
+        ffn.trainingDate = trainingDate;
+
+        int weightsStart = content.indexOf("\"weights\": [") + 12;
+        int weightsEnd = content.indexOf("], \n \"biases\"");
+        String weightsStr = content.substring(weightsStart, weightsEnd);
+        parseWeights(weightsStr, ffn.weights);
+
+        // Parse biases
+        int biasesStart = content.indexOf("\"biases\": [") + 11;
+        int biasesEnd = content.lastIndexOf("]");
+        String biasesStr = content.substring(biasesStart, biasesEnd);
+        parseBiases(biasesStr, ffn.biases);
+
+        return ffn;
+    }
+
+    public static FFN loadFromBin(String filename) throws IOException {
+        try (DataInputStream dis = new DataInputStream(new FileInputStream(filename))) {
+            int epochsTrained = dis.readInt();
+            double learningRate = dis.readDouble();
+            double finalLoss = dis.readDouble();
+            double testAccuracy = dis.readDouble();
+            long trainingTimeMs = dis.readLong();
+            String trainingDate = dis.readUTF();
+
+            int numLayers = dis.readInt();
+            int[] layers = new int[numLayers];
+            for (int i = 0; i < numLayers; i++) {
+                layers[i] = dis.readInt();
+            }
+            FFN ffn = new FFN(layers);
+            ffn.epochsTrained = epochsTrained;
+            ffn.learningRate = learningRate;
+            ffn.finalLoss = finalLoss;
+            ffn.testAccuracy = testAccuracy;
+            ffn.trainingTimeMs = trainingTimeMs;
+            ffn.trainingDate = trainingDate;
+            for (int l = 0; l < ffn.weights.length; l++) {
+                for (int i = 0; i < ffn.weights[l].length; i++) {
+                    for (int j = 0; j < ffn.weights[l][i].length; j++) {
+                        ffn.weights[l][i][j] = dis.readDouble();
+                    }
+                }
+            }
+            for (int i = 0; i < ffn.biases.length; i++) {
+                for (int j = 0; j < ffn.biases[i].length; j++) {
+                    ffn.biases[i][j] = dis.readDouble();
+                }
+            }
+            return ffn;
         }
     }
 
