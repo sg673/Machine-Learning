@@ -1,384 +1,51 @@
 package com.portfolio.fnn.network;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Random;
 
-import static com.portfolio.fnn.util.parser.JsonParser.*;
+import static com.portfolio.fnn.util.DataUtils.*;
 
 public class FFN {
-    private final int[] layers;
-    private double[][][] weights;
-    private double[][] biases;
-    private final Random rand = new Random();
-
-    // metadata fields
-    private int epochsTrained = 0;
-    private double learningRate = 0.0;
-    private double finalLoss = 0.0;
-    private double testAccuracy = 0.0;
-    private long trainingTimeMs = 0;
-    private String trainingDate = "";
-
-    private static double sigmoid(double x) {
-        return 1.0 / (1.0 + Math.exp(-x));
-    }
-
-    private static double dSigmoid(double x) {
-        return x * (1.0 - x);
-    }
+    private final NeuralNetwork network;
+    private final NetworkTrainer trainer;
+    private final ModelSerializer serializer;
+    private final NetworkEvaluator evaluator;
+    private final ModelMetadata metadata;
 
     public FFN(int... layers) {
-        this.layers = layers;
-        initWeights();
-    }
-
-    private void initWeights() {
-        weights = new double[layers.length - 1][][];
-        biases = new double[layers.length - 1][];
-
-        for (int i = 0; i < layers.length - 1; i++) {
-            int in = layers[i];
-            int out = layers[i + 1];
-            weights[i] = new double[in][out];
-            biases[i] = new double[out];
-
-            for (int j = 0; j < in; j++) {
-                for (int k = 0; k < out; k++) {
-                    weights[i][j][k] = rand.nextGaussian() * 0.01;
-                }
-            }
-            for (int j = 0; j < out; j++) {
-                biases[i][j] = 0.0;
-            }
-        }
-    }
-
-    private double[][] forward(double[] input) {
-        double[][] activations = new double[layers.length][];
-        activations[0] = input.clone();
-
-        for (int i = 1; i < layers.length; i++) {
-            int n = layers[i];
-            activations[i] = new double[n];
-
-            for (int j = 0; j < n; j++) {
-                double sum = biases[i - 1][j];
-
-                for (int k = 0; k < layers[i - 1]; k++) {
-                    sum += activations[i - 1][k] * weights[i - 1][k][j];
-                }
-                activations[i][j] = sigmoid(sum);
-            }
-        }
-        return activations;
-    }
-
-    private static double[][] oneHotEncode(int[] labels) {
-        int numClasses = 10; // For MNIST, we have 10 classes (0-9)
-        double[][] oneHot = new double[labels.length][numClasses];
-        for (int i = 0; i < labels.length; i++) {
-            oneHot[i][labels[i]] = 1.0;
-        }
-        return oneHot;
+        this.network = new NeuralNetwork(layers);
+        this.trainer = new NetworkTrainer();
+        this.serializer = new ModelSerializer();
+        this.evaluator = new NetworkEvaluator();
+        this.metadata = new ModelMetadata();
     }
 
     public void train(double[][] x, double[][] y, double lr, int epochs) {
-        this.learningRate = lr;
-        this.trainingDate = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-
-        LossMonitor monitor = new LossMonitor(1e-6, 5);
-        long startTime = System.currentTimeMillis();
-        for (int epoch = 0; epoch < epochs; epoch++) {
-            this.epochsTrained++;
-            System.out.print("\rEpoch " + epoch + ": " + monitor.getETA(epoch, epochs));
-            double loss = 0.0;
-
-            for (int n = 0; n < x.length; n++) {
-                double[][] activations = forward(x[n]);
-
-                double[] yPred = activations[layers.length - 1];
-                double[] yTrue = y[n];
-
-                for (int k = 0; k < yTrue.length; k++) {
-                    loss += Math.pow(yPred[k] - yTrue[k], 2);
-                }
-                double[][] deltas = new double[layers.length][];
-                deltas[layers.length - 1] = new double[layers[layers.length - 1]];
-                for (int k = 0; k < layers[layers.length - 1]; k++) {
-                    double yP = yPred[k];
-                    double yT = yTrue[k];
-                    deltas[layers.length - 1][k] = (yP - yT) * dSigmoid(yP);
-                }
-
-                for (int l = layers.length - 2; l > 0; l--) {
-                    deltas[l] = new double[layers[l]];
-                    for (int k = 0; k < layers[l]; k++) {
-                        double sum = 0.0;
-                        for (int j = 0; j < layers[l + 1]; j++) {
-                            sum += deltas[l + 1][j] * weights[l][k][j];
-                        }
-                        deltas[l][k] = sum * dSigmoid(activations[l][k]);
-                    }
-                }
-
-                for (int l = 0; l < layers.length - 1; l++) {
-                    for (int i = 0; i < layers[l]; i++) {
-                        for (int j = 0; j < layers[l + 1]; j++) {
-                            weights[l][i][j] -= lr * activations[l][i] * deltas[l + 1][j];
-                        }
-                    }
-                    for (int j = 0; j < layers[l + 1]; j++) {
-                        biases[l][j] -= lr * deltas[l + 1][j];
-                    }
-                }
-            }
-            if (epoch % 500 == 0 && epoch != 0) {
-                this.finalLoss = loss / x.length;
-                monitor.printStats(epoch, loss / x.length);
-            }
-
-            if (monitor.shouldStop(loss / x.length, epoch / 5)) {
-                this.finalLoss = loss / x.length;
-                System.out.println("Early stopping at epoch " + epoch + ": " + (loss / x.length));
-                break;
-            }
-        }
-        this.trainingTimeMs = System.currentTimeMillis() - startTime;
-        System.out.printf("\nTraining complete in %dm %ds%n", (System.currentTimeMillis() - startTime) / 60000,
-                (System.currentTimeMillis() - startTime) % 60000 / 1000);
+        trainer.train(network, metadata, x, y, lr, epochs);
     }
 
     public int predict(double[] input) {
-        return forward(input)[layers.length - 1][0] > 0.5 ? 1 : 0;
+        return network.predict(input);
     }
 
     public int predictClass(double[] input) {
-        double[] output = forward(input)[layers.length - 1];
-        return getMaxIndex(output);
+        return network.predictClass(input);
     }
-
-    private int getMaxIndex(double[] array) {
-        int maxIndex = 0;
-        for (int i = 1; i < array.length; i++) {
-            if (array[i] > array[maxIndex]) {
-                maxIndex = i;
-            }
-        }
-        return maxIndex;
-    }
-
-    // private static void xor() {
-    // System.out.println("Starting FFN...");
-    // FFN ffn = new FFN(2, 4, 1);
-    // double[][] x = { { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } };
-    // double[][] y = { { 0 }, { 1 }, { 1 }, { 0 } };
-    // ffn.train(x, y, 0.5, 10000);
-
-    // for (double[] input : x) {
-    // int output = ffn.predict(input);
-    // System.out.printf("\nInput: %.0f %.0f -> %d%n", input[0], input[1], output);
-    // }
-    // }
 
     public void evaluate(double[][] testImages, int[] testLabels) {
-        int correct = 0;
-        for (int i = 0; i < testImages.length; i++) {
-            int predicted = predictClass(testImages[i]);
-            int actual = testLabels[i];
-            if (predicted == actual) {
-                correct++;
-            }
-        }
-        this.testAccuracy = (double) correct / testImages.length;
-        System.out.printf("Test accuracy: %.2f%%%n", testAccuracy * 100);
+        double accuracy = evaluator.evaluate(network, testImages, testLabels);
+        metadata.setTestAccuracy(accuracy);
     }
 
-    private void saveToJson(String filename) throws IOException {
-        StringBuilder json = new StringBuilder();
-        json.append("{\n  \"metadata\": {\n");
-        json.append("    \"epochsTrained\": ").append(epochsTrained).append(",\n");
-        json.append("    \"learningRate\": ").append(learningRate).append(",\n");
-        json.append("    \"finalLoss\": ").append(finalLoss).append(",\n");
-        json.append("    \"testAccuracy\": ").append(testAccuracy).append(",\n");
-        json.append("    \"trainingTimeMs\": ").append(trainingTimeMs).append(",\n");
-        json.append("    \"trainingDate\": \"").append(trainingDate).append("\",\n");
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        for (int i = 0; i < layers.length; i++) {
-            sb.append(layers[i]);
-            if (i < layers.length - 1)
-                sb.append(", ");
-        }
-        sb.append("]");
-        json.append("    \"layerSizes\": ").append(sb).append("\n");
-        json.append("  },\n");
-        json.append(" \"weights\": [");
-
-        for (int l = 0; l < weights.length; l++) {
-            json.append("[");
-            for (int i = 0; i < weights[l].length; i++) {
-                json.append("[");
-                for (int j = 0; j < weights[l][i].length; j++) {
-                    json.append(weights[l][i][j]);
-                    if (j < weights[l][i].length - 1)
-                        json.append(", ");
-                }
-                json.append("]");
-                if (i < weights[l].length - 1)
-                    json.append(", \n");
-            }
-            json.append("]");
-            if (l < weights.length - 1)
-                json.append(", \n");
-        }
-        json.append("], \n \"biases\": [");
-        for (int l = 0; l < biases.length; l++) {
-            json.append("[");
-            for (int j = 0; j < biases[l].length; j++) {
-                json.append(biases[l][j]);
-                if (j < biases[l].length - 1)
-                    json.append(", ");
-            }
-            json.append("]");
-            if (l < biases.length - 1)
-                json.append(",\n");
-        }
-        json.append("]\n}");
-        Files.write(Paths.get(filename), json.toString().getBytes());
-
-    }
-
-    private void saveToBin(String filename) throws IOException {
-        try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(filename))) {
-            // metadata
-            dos.writeInt(epochsTrained);
-            dos.writeDouble(learningRate);
-            dos.writeDouble(finalLoss);
-            dos.writeDouble(testAccuracy);
-            dos.writeLong(trainingTimeMs);
-            dos.writeUTF(trainingDate);
-
-            dos.writeInt(layers.length);
-            for (int layer : layers) {
-                dos.writeInt(layer);
-            }
-            for (double[][] layer : weights) {
-                for (double[] neuron : layer) {
-                    for (double weight : neuron) {
-                        dos.writeDouble(weight);
-                    }
-                }
-            }
-
-            for (double[] layer : biases) {
-                for (double bias : layer) {
-                    dos.writeDouble(bias);
-                }
-            }
-        }
-    }
-
-    public void saveModel(String modelName, Boolean json) throws IOException {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd--HH-mm-ss"));
-        Path dir = Paths.get("savedModels", modelName);
-        Files.createDirectories(dir);
-        String filename = dir.resolve(modelName + "-" + timestamp + (json ? ".json" : ".fnn")).toString();
-
-        try {
-            if (json) {
-                saveToJson(filename);
-            } else {
-                saveToBin(filename);
-            }
-            System.out.println("Model saved to " + modelName);
-        } catch (IOException e) {
-            System.out.println("Error saving model: " + e.getMessage());
-        }
+    public String saveModel(String modelName, Boolean json) throws IOException {
+        return serializer.saveModel(network, metadata, modelName, json);
     }
 
     public static FFN loadFromJson(String filename) throws IOException {
-        String content = new String(Files.readAllBytes(Paths.get(filename)));
-
-        int epochsTrained = parseIntValue(content, "epochsTrained");
-        double learningRate = parseDoubleValue(content, "learningRate");
-        double finalLoss = parseDoubleValue(content, "finalLoss");
-        double testAccuracy = parseDoubleValue(content, "testAccuracy");
-        long trainingTimeMs = parseLongValue(content, "trainingTimeMs");
-        String trainingDate = parseStringValue(content, "trainingDate");
-
-        String layerSizesStr = parseArrayValue(content, "layerSizes");
-        String[] layerSizesParts = layerSizesStr.split(",");
-        int[] layers = new int[layerSizesParts.length];
-        for (int i = 0; i < layerSizesParts.length; i++) {
-            layers[i] = Integer.parseInt(layerSizesParts[i].trim());
-        }
-        FFN ffn = new FFN(layers);
-        ffn.epochsTrained = epochsTrained;
-        ffn.learningRate = learningRate;
-        ffn.finalLoss = finalLoss;
-        ffn.testAccuracy = testAccuracy;
-        ffn.trainingTimeMs = trainingTimeMs;
-        ffn.trainingDate = trainingDate;
-
-        int weightsStart = content.indexOf("\"weights\": [") + 12;
-        int weightsEnd = content.indexOf("], \n \"biases\"");
-        String weightsStr = content.substring(weightsStart, weightsEnd);
-        parseWeights(weightsStr, ffn.weights);
-
-        // Parse biases
-        int biasesStart = content.indexOf("\"biases\": [") + 11;
-        int biasesEnd = content.lastIndexOf("]");
-        String biasesStr = content.substring(biasesStart, biasesEnd);
-        parseBiases(biasesStr, ffn.biases);
-
-        return ffn;
+        return ModelSerializer.loadFromJson(filename);
     }
 
     public static FFN loadFromBin(String filename) throws IOException {
-        try (DataInputStream dis = new DataInputStream(new FileInputStream(filename))) {
-            int epochsTrained = dis.readInt();
-            double learningRate = dis.readDouble();
-            double finalLoss = dis.readDouble();
-            double testAccuracy = dis.readDouble();
-            long trainingTimeMs = dis.readLong();
-            String trainingDate = dis.readUTF();
-
-            int numLayers = dis.readInt();
-            int[] layers = new int[numLayers];
-            for (int i = 0; i < numLayers; i++) {
-                layers[i] = dis.readInt();
-            }
-            FFN ffn = new FFN(layers);
-            ffn.epochsTrained = epochsTrained;
-            ffn.learningRate = learningRate;
-            ffn.finalLoss = finalLoss;
-            ffn.testAccuracy = testAccuracy;
-            ffn.trainingTimeMs = trainingTimeMs;
-            ffn.trainingDate = trainingDate;
-            for (int l = 0; l < ffn.weights.length; l++) {
-                for (int i = 0; i < ffn.weights[l].length; i++) {
-                    for (int j = 0; j < ffn.weights[l][i].length; j++) {
-                        ffn.weights[l][i][j] = dis.readDouble();
-                    }
-                }
-            }
-            for (int i = 0; i < ffn.biases.length; i++) {
-                for (int j = 0; j < ffn.biases[i].length; j++) {
-                    ffn.biases[i][j] = dis.readDouble();
-                }
-            }
-            return ffn;
-        }
+        return ModelSerializer.loadFromBin(filename);
     }
 
     private static void mnist() {
@@ -391,7 +58,9 @@ public class FFN {
             double[][] trainLabels = oneHotEncode(trainingData.getLabels());
             ffn.train(trainingData.getImages(), trainLabels, 0.01, 1);
             ffn.evaluate(testData.getImages(), testData.getLabels());
-            ffn.saveModel("sample", false);
+            ffn.saveModel("sample", true);
+
+            // System.out.println(ffn.equals(loaded));
 
         } catch (IOException e) {
             System.out.println("Error loading MNIST data: " + e.getMessage());
@@ -404,16 +73,21 @@ public class FFN {
             return false;
         }
         FFN that = (FFN) other;
-        return Arrays.equals(this.layers, that.layers) && Arrays.deepEquals(this.biases, that.biases)
-                && Arrays.deepEquals(this.weights, that.weights);
+        return this.network.equals(that.network);
     }
 
     @Override
     public int hashCode() {
-        int result = Arrays.hashCode(layers);
-        result = 31 * result + Arrays.deepHashCode(weights);
-        result = 31 * result + Arrays.deepHashCode(biases);
-        return result;
+        return network.hashCode();
+    }
+
+    // Getters for components
+    public NeuralNetwork getNetwork() {
+        return network;
+    }
+
+    public ModelMetadata getMetadata() {
+        return metadata;
     }
 
     public static void main(String[] args) {

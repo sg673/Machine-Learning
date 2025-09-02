@@ -41,7 +41,6 @@ public class JsonParser {
     }
 
     public static void parseWeights(String str, double[][][] weights) {
-        // Simple parser for nested weight arrays
         str = str.trim().substring(1, str.length() - 1);
         int layer = 0, neuron = 0, weight = 0;
         StringBuilder num = new StringBuilder();
@@ -51,25 +50,24 @@ public class JsonParser {
             if (c == '[') {
                 depth++;
             } else if (c == ']') {
-                if (num.length() > 0) {
+                if (num.length() > 0 && layer < weights.length && neuron < weights[layer].length
+                        && weight < weights[layer][neuron].length) {
                     weights[layer][neuron][weight++] = Double.parseDouble(num.toString());
                     num.setLength(0);
                 }
                 depth--;
-                if (depth == 1) {
+                if (depth == 2) {
                     neuron++;
                     weight = 0;
-                }
-                if (depth == 0) {
+                } else if (depth == 1) {
                     layer++;
                     neuron = 0;
                 }
-            } else if (c == ',' && depth > 0) {
-                if (num.length() > 0) {
-                    weights[layer][neuron][weight++] = Double.parseDouble(num.toString());
-                    num.setLength(0);
-                }
-            } else if (Character.isDigit(c) || c == '.' || c == '-') {
+            } else if (c == ',' && num.length() > 0 && layer < weights.length && neuron < weights[layer].length
+                    && weight < weights[layer][neuron].length) {
+                weights[layer][neuron][weight++] = Double.parseDouble(num.toString());
+                num.setLength(0);
+            } else if (Character.isDigit(c) || c == '.' || c == '-' || c == 'E' || c == '+') {
                 num.append(c);
             }
         }
@@ -85,21 +83,19 @@ public class JsonParser {
             if (c == '[') {
                 depth++;
             } else if (c == ']') {
-                if (num.length() > 0) {
+                if (num.length() > 0 && layer < biases.length && bias < biases[layer].length) {
                     biases[layer][bias++] = Double.parseDouble(num.toString());
                     num.setLength(0);
                 }
+                depth--;
                 if (depth == 1) {
                     layer++;
                     bias = 0;
                 }
-                depth--;
-            } else if (c == ',' && depth > 0) {
-                if (num.length() > 0) {
-                    biases[layer][bias++] = Double.parseDouble(num.toString());
-                    num.setLength(0);
-                }
-            } else if (Character.isDigit(c) || c == '.' || c == '-') {
+            } else if (c == ',' && num.length() > 0 && layer < biases.length && bias < biases[layer].length) {
+                biases[layer][bias++] = Double.parseDouble(num.toString());
+                num.setLength(0);
+            } else if (Character.isDigit(c) || c == '.' || c == '-' || c == 'E' || c == '+') {
                 num.append(c);
             }
         }
