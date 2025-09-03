@@ -19,6 +19,14 @@ public class FFN {
         this.metadata = new ModelMetadata();
     }
 
+    public FFN(ActivationFunction activationFunction, int... layers) {
+        this.network = new NeuralNetwork(activationFunction, layers);
+        this.trainer = new NetworkTrainer();
+        this.serializer = new ModelSerializer();
+        this.evaluator = new NetworkEvaluator();
+        this.metadata = new ModelMetadata();
+    }
+
     public void train(double[][] x, double[][] y, double lr, int epochs) {
         trainer.train(network, metadata, x, y, lr, epochs);
     }
@@ -50,7 +58,7 @@ public class FFN {
 
     private static void mnist() {
         System.out.println("Starting FFN for MNIST...");
-        FFN ffn = new FFN(784, 128, 10);
+        FFN ffn = new FFN(ActivationFunction.RELU, 784, 128, 10);
         try {
             MNISTReader.Dataset trainingData = MNISTReader.loadTraining();
             MNISTReader.Dataset testData = MNISTReader.loadTest();
@@ -59,8 +67,6 @@ public class FFN {
             ffn.train(trainingData.getImages(), trainLabels, 0.01, 1);
             ffn.evaluate(testData.getImages(), testData.getLabels());
             ffn.saveModel("sample", true);
-
-            // System.out.println(ffn.equals(loaded));
 
         } catch (IOException e) {
             System.out.println("Error loading MNIST data: " + e.getMessage());

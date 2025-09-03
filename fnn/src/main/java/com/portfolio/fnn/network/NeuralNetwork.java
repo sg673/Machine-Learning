@@ -2,7 +2,6 @@ package com.portfolio.fnn.network;
 
 import java.util.Arrays;
 import java.util.Random;
-import static com.portfolio.fnn.network.ActivationFunction.*;
 import static com.portfolio.fnn.util.DataUtils.*;
 
 public class NeuralNetwork {
@@ -10,9 +9,17 @@ public class NeuralNetwork {
     private double[][][] weights;
     private double[][] biases;
     private final Random rand = new Random();
+    private ActivationFunction activationFunction;
 
     public NeuralNetwork(int... layers) {
         this.layers = layers;
+        this.activationFunction = ActivationFunction.SIGMOID; // Default
+        initWeights();
+    }
+    
+    public NeuralNetwork(ActivationFunction activationFunction, int... layers) {
+        this.layers = layers;
+        this.activationFunction = activationFunction;
         initWeights();
     }
 
@@ -51,7 +58,7 @@ public class NeuralNetwork {
                 for (int k = 0; k < layers[i - 1]; k++) {
                     sum += activations[i - 1][k] * weights[i - 1][k][j];
                 }
-                activations[i][j] = sigmoid(sum);
+                activations[i][j] = activationFunction.activate(sum);
             }
         }
         return activations;
@@ -84,10 +91,12 @@ public class NeuralNetwork {
         return result;
     }
 
-    // Getters
+    // Getters and Setters
     public int[] getLayers() { return layers; }
     public double[][][] getWeights() { return weights; }
     public double[][] getBiases() { return biases; }
+    public ActivationFunction getActivationFunction() { return activationFunction; }
     public void setWeights(double[][][] weights) { this.weights = weights; }
     public void setBiases(double[][] biases) { this.biases = biases; }
+    public void setActivationFunction(ActivationFunction activationFunction) { this.activationFunction = activationFunction; }
 }

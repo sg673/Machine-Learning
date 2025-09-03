@@ -1,7 +1,5 @@
 package com.portfolio.fnn.network;
 
-import static com.portfolio.fnn.network.ActivationFunction.*;
-
 public class NetworkTrainer {
     public void train(NeuralNetwork network, ModelMetadata metadata, double[][] x, double[][] y, double lr, int epochs) {
         metadata.setTrainingStart(lr);
@@ -11,6 +9,7 @@ public class NetworkTrainer {
         int[] layers = network.getLayers();
         double[][][] weights = network.getWeights();
         double[][] biases = network.getBiases();
+        ActivationFunction activationFunction = network.getActivationFunction();
 
         for (int epoch = 0; epoch < epochs; epoch++) {
             metadata.incrementEpoch();
@@ -32,7 +31,7 @@ public class NetworkTrainer {
                 for (int k = 0; k < layers[layers.length - 1]; k++) {
                     double yP = yPred[k];
                     double yT = yTrue[k];
-                    deltas[layers.length - 1][k] = (yP - yT) * dSigmoid(yP);
+                    deltas[layers.length - 1][k] = (yP - yT) * activationFunction.derivative(yP);
                 }
 
                 for (int l = layers.length - 2; l > 0; l--) {
@@ -42,7 +41,7 @@ public class NetworkTrainer {
                         for (int j = 0; j < layers[l + 1]; j++) {
                             sum += deltas[l + 1][j] * weights[l][k][j];
                         }
-                        deltas[l][k] = sum * dSigmoid(activations[l][k]);
+                        deltas[l][k] = sum * activationFunction.derivative(activations[l][k]);
                     }
                 }
 
