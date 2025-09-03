@@ -1,13 +1,14 @@
-package com.portfolio.fnn;
+package com.portfolio.nn;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class FnnApplicationTests {
+class NeuralNetworkApplicationTests {
 
 	@Test
 	void contextLoads() {
+
 	}
 
 }
