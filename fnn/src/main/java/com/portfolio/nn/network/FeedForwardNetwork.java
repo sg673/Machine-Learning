@@ -105,6 +105,7 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
     public void train(double[][] x, double[][] y, double learningRate, int epochs, int numBatches) {
         long startTime = System.currentTimeMillis();
         int batchSize = x.length / numBatches;
+        // Progress update frequency, ensures a maximum of 100 updates per epoch
         int printInterval = Math.max(1, numBatches / 100);
 
         for (int epoch = 0; epoch < epochs; epoch++) {
@@ -112,6 +113,7 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
             int totalSamples = 0;
 
             for (int batch = 0; batch < numBatches; batch++) {
+                // batch boundaries with remainder handling for last batch
                 int start = batch * batchSize;
                 int end = (batch == numBatches - 1) ? x.length : start + batchSize;
 
@@ -121,19 +123,23 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
                     weightGradients[i] = new double[weights[i].length][weights[i][0].length];
                     biasGradients[i] = new double[biases[i].length];
                 }
+                // Processes each sample in this batch
                 for (int i = start; i < end; i++) {
+                    // Forward pass
                     double[][] activations = forwardWithActivations(x[i]);
                     double[] output = activations[layers.length - 1];
 
+                    // Accuracy tracking
                     int predicted = DataUtils.getMaxIndex(output);
                     int actual = DataUtils.getMaxIndex(y[i]);
                     if (predicted == actual) {
                         correctPredictions++;
                     }
+                    // Backwards pass
                     accumulateGradients(activations, y[i], weightGradients, biasGradients);
                     totalSamples++;
                 }
-                // update weights + biases
+                // update weights + biases (mini-batch gradient descent)
                 for (int i = 0; i < weights.length; i++) {
                     for (int j = 0; j < weights[i].length; j++) {
                         for (int k = 0; k < weights[i][j].length; k++) {
@@ -144,6 +150,8 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
                         biases[i][j] -= learningRate * biasGradients[i][j] / batchSize;
                     }
                 }
+                // Calculate and display progress metrics
+                // FIX ME - eta is not displaying correctly
                 double accuracy = (double) correctPredictions / totalSamples;
                 long elapsed = System.currentTimeMillis() - startTime;
                 int totalBatches = epochs * numBatches;
@@ -249,6 +257,7 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
         return new Gson().fromJson(json, FeedForwardNetwork.class);
     }
 
+    @Override
     public FeedForwardNetwork load(String modelName, String filename) throws IOException {
         Path dir = Paths.get("savedModels", modelName);
         if (!Files.exists(dir)) {

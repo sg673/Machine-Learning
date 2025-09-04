@@ -43,8 +43,30 @@ public interface NeuralNetworkBase {
      */
     double evaluate(double[][] testX, double[][] testY);
 
+    /**
+     * Save the trained model to disk with timestamp.
+     * 
+     * @param modelName Name of the model to save
+     * @throws IOException If file operations fail
+     */
     void save(String modelName) throws IOException;
 
+    /**
+     * Load the most recent model from disk.
+     * 
+     * @param modelName Name of the model to load
+     * @return Loaded neural network instance
+     * @throws IOException If model file not found or loading fails
+     */
     NeuralNetworkBase load(String modelName) throws IOException;
 
+    /**
+     * Load the specified model from disk.
+     * 
+     * @param modelName Name of the model to load
+     * @param filename  Name of the file to load
+     * @return Loaded neural network instance
+     * @throws IOException If model file not found or loading fails
+     */
+    NeuralNetworkBase load(String modelName, String filename) throws IOException;
 }
