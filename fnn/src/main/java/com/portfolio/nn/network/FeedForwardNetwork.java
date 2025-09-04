@@ -36,6 +36,10 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
         initWeights();
     }
 
+    /**
+     * For Use with loading only,
+     * Use other initialisers for new networks
+     */
     public FeedForwardNetwork() {
 
     }
@@ -92,41 +96,6 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
         return activations;
     }
 
-    private void backpropagate(double[][] activations, double[] target, double learningRate) {
-        double[][] deltas = new double[layers.length][];
-
-        // output layer
-        deltas[layers.length - 1] = new double[layers[layers.length - 1]];
-        for (int neuron = 0; neuron < layers[layers.length - 1]; neuron++) {
-            double output = activations[layers.length - 1][neuron];
-            deltas[layers.length - 1][neuron] = (output - target[neuron]) *
-                    activationFunction.derivative(output);
-        }
-        // Hidden layers
-        for (int i = layers.length - 2; i > 0; i--) {
-            deltas[i] = new double[layers[i]];
-            for (int j = 0; j < layers[i]; j++) {
-                double sum = 0.0;
-                for (int k = 0; k < layers[i + 1]; k++) {
-                    sum += deltas[i + 1][k] * weights[i][j][k];
-                }
-                deltas[i][j] = sum * activationFunction.derivative(activations[i][j]);
-            }
-        }
-        // update weights and biases
-        for (int i = 0; i < layers.length - 1; i++) {
-            for (int j = 0; j < layers[i]; j++) {
-                for (int k = 0; k < layers[i + 1]; k++) {
-                    weights[i][j][k] -= learningRate * activations[i][j] * deltas[i + 1][k];
-                }
-            }
-            for (int j = 0; j < layers[i + 1]; j++) {
-                biases[i][j] -= learningRate * deltas[i + 1][j];
-            }
-        }
-
-    }
-
     @Override
     public int predict(double[] input) {
         double[] output = forward(input);
@@ -141,7 +110,6 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
         for (int epoch = 0; epoch < epochs; epoch++) {
             int correctPredictions = 0;
             int totalSamples = 0;
-            double totalLoss = 0.0;
 
             for (int batch = 0; batch < numBatches; batch++) {
                 int start = batch * batchSize;
@@ -156,9 +124,6 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
                 for (int i = start; i < end; i++) {
                     double[][] activations = forwardWithActivations(x[i]);
                     double[] output = activations[layers.length - 1];
-                    for (int j = 0; j < y[i].length; j++) {
-                        totalLoss += Math.pow(output[j] - y[i][j], 2);
-                    }
 
                     int predicted = DataUtils.getMaxIndex(output);
                     int actual = DataUtils.getMaxIndex(y[i]);

@@ -1,6 +1,5 @@
 package com.portfolio.nn.network;
 
-import java.awt.image.ImagingOpException;
 import java.io.IOException;
 
 /**
