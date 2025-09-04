@@ -10,7 +10,8 @@ import java.time.format.DateTimeFormatter;
 import static com.portfolio.fnn.util.parser.JsonParser.*;
 
 public class ModelSerializer {
-    public String saveModel(NeuralNetwork network, ModelMetadata metadata, String modelName, Boolean json) throws IOException {
+    public String saveModel(NeuralNetwork network, ModelMetadata metadata, String modelName, Boolean json)
+            throws IOException {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd--HH-mm-ss"));
         Path dir = Paths.get("savedModels", modelName);
         Files.createDirectories(dir);
@@ -39,13 +40,14 @@ public class ModelSerializer {
         json.append("    \"testAccuracy\": ").append(metadata.getTestAccuracy()).append(",\n");
         json.append("    \"trainingTimeMs\": ").append(metadata.getTrainingTimeMs()).append(",\n");
         json.append("    \"trainingDate\": \"").append(metadata.getTrainingDate()).append("\",\n");
-        
+
         StringBuilder sb = new StringBuilder();
         sb.append("[");
         int[] layers = network.getLayers();
         for (int i = 0; i < layers.length; i++) {
             sb.append(layers[i]);
-            if (i < layers.length - 1) sb.append(", ");
+            if (i < layers.length - 1)
+                sb.append(", ");
         }
         sb.append("]");
         json.append("    \"layerSizes\": ").append(sb).append("\n");
@@ -59,25 +61,30 @@ public class ModelSerializer {
                 json.append("[");
                 for (int j = 0; j < weights[l][i].length; j++) {
                     json.append(weights[l][i][j]);
-                    if (j < weights[l][i].length - 1) json.append(", ");
+                    if (j < weights[l][i].length - 1)
+                        json.append(", ");
                 }
                 json.append("]");
-                if (i < weights[l].length - 1) json.append(", \n");
+                if (i < weights[l].length - 1)
+                    json.append(", \n");
             }
             json.append("]");
-            if (l < weights.length - 1) json.append(", \n");
+            if (l < weights.length - 1)
+                json.append(", \n");
         }
         json.append("], \n \"biases\": [");
-        
+
         double[][] biases = network.getBiases();
         for (int l = 0; l < biases.length; l++) {
             json.append("[");
             for (int j = 0; j < biases[l].length; j++) {
                 json.append(biases[l][j]);
-                if (j < biases[l].length - 1) json.append(", ");
+                if (j < biases[l].length - 1)
+                    json.append(", ");
             }
             json.append("]");
-            if (l < biases.length - 1) json.append(",\n");
+            if (l < biases.length - 1)
+                json.append(",\n");
         }
         json.append("]\n}");
         Files.write(Paths.get(filename), json.toString().getBytes());
@@ -97,7 +104,7 @@ public class ModelSerializer {
             for (int layer : layers) {
                 dos.writeInt(layer);
             }
-            
+
             double[][][] weights = network.getWeights();
             for (double[][] layer : weights) {
                 for (double[] neuron : layer) {
@@ -132,7 +139,7 @@ public class ModelSerializer {
         for (int i = 0; i < layerSizesParts.length; i++) {
             layers[i] = Integer.parseInt(layerSizesParts[i].trim());
         }
-        
+
         FFN ffn = new FFN(layers);
         ffn.getMetadata().setEpochsTrained(epochsTrained);
         ffn.getMetadata().setLearningRate(learningRate);
@@ -168,7 +175,7 @@ public class ModelSerializer {
             for (int i = 0; i < numLayers; i++) {
                 layers[i] = dis.readInt();
             }
-            
+
             FFN ffn = new FFN(layers);
             ffn.getMetadata().setEpochsTrained(epochsTrained);
             ffn.getMetadata().setLearningRate(learningRate);
@@ -176,7 +183,7 @@ public class ModelSerializer {
             ffn.getMetadata().setTestAccuracy(testAccuracy);
             ffn.getMetadata().setTrainingTimeMs(trainingTimeMs);
             ffn.getMetadata().setTrainingDate(trainingDate);
-            
+
             double[][][] weights = ffn.getNetwork().getWeights();
             for (int l = 0; l < weights.length; l++) {
                 for (int i = 0; i < weights[l].length; i++) {
@@ -185,7 +192,7 @@ public class ModelSerializer {
                     }
                 }
             }
-            
+
             double[][] biases = ffn.getNetwork().getBiases();
             for (int i = 0; i < biases.length; i++) {
                 for (int j = 0; j < biases[i].length; j++) {

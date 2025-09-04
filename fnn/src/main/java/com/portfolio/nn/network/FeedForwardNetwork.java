@@ -1,17 +1,27 @@
 package com.portfolio.nn.network;
 
+import com.google.gson.Gson;
 import com.portfolio.nn.network.activation.ActivationFunction;
 import com.portfolio.nn.util.DataUtils;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Random;
+
+import com.google.gson.GsonBuilder;
 
 /**
  * Feed Forward Neural Network implementation.
  */
 public class FeedForwardNetwork implements NeuralNetworkBase {
-    private final int[] layers;
+    private int[] layers;
     private double[][][] weights;
     private double[][] biases;
-    private final Random rand = new Random();
+    private transient final Random rand = new Random();
     private ActivationFunction activationFunction;
 
     public FeedForwardNetwork(int... layers) {
@@ -24,6 +34,10 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
         this.layers = layers;
         this.activationFunction = activationFunction;
         initWeights();
+    }
+
+    public FeedForwardNetwork() {
+
     }
 
     private void initWeights() {
@@ -235,6 +249,53 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
                 correct++;
         }
         return (double) correct / testX.length;
+    }
+
+    @Override
+    public void save(String modelName) throws IOException {
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd--HH-mm-ss"));
+        Path dir = Paths.get("savedModels", modelName);
+        Files.createDirectories(dir);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(this);
+        String filename = dir.resolve(modelName + "-" + timestamp + ".json").toString();
+        Files.write(Paths.get(filename), json.getBytes());
+    }
+
+    @Override
+    public FeedForwardNetwork load(String modelName) throws IOException {
+        Path dir = Paths.get("savedModels", modelName);
+        if (!Files.exists(dir)) {
+            throw new IOException("Model directory not found: " + dir);
+        }
+
+        Path mostRecent = Files.list(dir)
+                .filter(path -> path.toString().endsWith(".json"))
+                .max((p1, p2) -> {
+                    try {
+                        return Files.getLastModifiedTime(p1).compareTo(Files.getLastModifiedTime(p2));
+                    } catch (IOException e) {
+                        return 0;
+                    }
+                })
+                .orElseThrow(() -> new IOException("No model files found in: " + dir));
+
+        String json = new String(Files.readAllBytes(mostRecent));
+        return new Gson().fromJson(json, FeedForwardNetwork.class);
+    }
+
+    public FeedForwardNetwork load(String modelName, String filename) throws IOException {
+        Path dir = Paths.get("savedModels", modelName);
+        if (!Files.exists(dir)) {
+            throw new IOException("Model directory not found: " + dir);
+        }
+        try {
+            String json = new String(Files.readAllBytes(Paths.get("savedModels", modelName, filename)));
+            return new Gson().fromJson(json, FeedForwardNetwork.class);
+        } catch (IOException e) {
+            System.out.println(e);
+            throw new IOException("Error loading model from file: " + filename, e);
+        }
     }
 
     // Getters
