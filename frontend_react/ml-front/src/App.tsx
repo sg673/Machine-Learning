@@ -1,19 +1,15 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import { api } from './services/api';
 
 function App() {
-  const [count, setCount] = useState(0);
   const [data, setData] = useState<string>("");
 
   async function getRequest(){
-    fetch("http://localhost:8080/api/v1/test").then(async (response) =>{
-      setData(await response.text());
-    })
+    setData(await api.test());
   }
   return (
-    <div className='font-mono bg-bg-alt p-4 rounded-lg m-2 justify-around' >
+    <div className='card' >
       <button 
         className='btn ' 
         onClick={getRequest}>
@@ -24,7 +20,10 @@ function App() {
         onClick={getRequest}>
           <p>Response is: <span className=''>{data}</span></p>
       </button>
-      <div className='bg-acc p-0.5 rounded-lg m-2'></div>
+      <div className='card'>
+        <div className='bg-acc p-0.5 rounded-lg m-2'></div>
+
+      </div>
     </div>
   )
 }
