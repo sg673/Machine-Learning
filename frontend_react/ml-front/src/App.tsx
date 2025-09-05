@@ -13,28 +13,19 @@ function App() {
     })
   }
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card underline font-bold">
-        <button onClick={() => getRequest()}>
-          count is {data}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className='font-mono bg-bg-alt p-4 rounded-lg m-2 justify-around' >
+      <button 
+        className='btn ' 
+        onClick={getRequest}>
+          <p>Response is: <span className=''>{data}</span></p>
+      </button>
+      <button 
+        className='btn-sec' 
+        onClick={getRequest}>
+          <p>Response is: <span className=''>{data}</span></p>
+      </button>
+      <div className='bg-acc p-0.5 rounded-lg m-2'></div>
+    </div>
   )
 }
 
