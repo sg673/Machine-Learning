@@ -5,3 +5,12 @@ export enum PAGES {
     RESULTS = 'results',
     SETTINGS = 'settings',
 }
+
+export type model_values = {
+    epochs:number,
+    batchSize:number,
+    learningRate:number,
+    layers: number[],
+    activationFunction:string
+
+}
