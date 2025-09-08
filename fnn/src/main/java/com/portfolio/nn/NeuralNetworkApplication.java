@@ -2,6 +2,7 @@ package com.portfolio.nn;
 
 import java.io.IOException;
 
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.portfolio.nn.data.DataLoader;
@@ -14,9 +15,9 @@ import com.portfolio.nn.util.DataUtils;
 @SpringBootApplication
 public class NeuralNetworkApplication {
     public static void main(String[] args) {
-        // SpringApplication.run(NeuralNetworkApplication.class, args);
+        SpringApplication.run(NeuralNetworkApplication.class, args);
 
-        runMNISTDemo();
+        // runMNISTDemo();
     }
 
     private static void runMNISTDemo() {

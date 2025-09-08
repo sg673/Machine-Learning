@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-prim: var(--color-rose-700);
+  --color-prim-hover: var(--color-rose-600);
+
+  --color-sec: var(--color-sky-700);
+  --color-sec-hover: var(--color-sky-600);
+
+  --color-bg: var(--color-slate-950);
+  --color-bg-alt: var(--color-slate-900);
+
+  --color-border: var(--color-gray-700);
+
+  --color-acc: var(--color-rose-500);
+  --color-acc-hover: var(--color-rose-400);
+  --color-acc-active: var(--color-rose-700);
+
+  --color-text-col: var(--color-gray-500);
+  --color-text-col-alt: var(--color-gray-300);
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-text-col font-sans;
+  }
+  a { 
+    @apply text-prim hover:text-prim-hover;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-text-col;
+  }
+  p {
+    @apply text-text-col-alt;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 m-2 rounded-full bg-prim text-white font-semibold hover:bg-prim-hover hover:scale-105 transition;
+  }
+  .btn-sec {
+    @apply px-4 py-2 m-2 rounded-full bg-sec text-white font-semibold hover:bg-sec-hover hover:scale-105 transition;
+  }
+  .card {
+    @apply bg-bg-alt border border-border rounded p-4 shadow-md;
+  }
+}
