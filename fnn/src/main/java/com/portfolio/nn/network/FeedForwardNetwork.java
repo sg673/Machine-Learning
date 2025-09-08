@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
-import com.google.gson.GsonBuilder;
-
 /**
  * Feed Forward Neural Network implementation.
  */
@@ -229,7 +227,7 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd--HH-mm-ss"));
         Path dir = Paths.get("savedModels", modelName);
         Files.createDirectories(dir);
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new Gson();
         String json = gson.toJson(this);
         String filename = dir.resolve(modelName + "-" + timestamp + ".json").toString();
         Files.write(Paths.get(filename), json.getBytes());
