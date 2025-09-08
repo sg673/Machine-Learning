@@ -11,7 +11,7 @@ export const api = {
         },
         body: JSON.stringify(body)
     }),
-    put: async (endpoint: string, body: never) => await fetch(`${BASE_URL}${endpoint}`, {
+    put: async (endpoint: string, body: unknown) => await fetch(`${BASE_URL}${endpoint}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json"
@@ -28,10 +28,10 @@ export const api = {
 
     getModels: async () => (await api.get("models")).json(),
     deleteModelById: async (id: string) => await api.delete(`models/${id}`),
-    getModelById: async(id:string) => (await api.get("models/"+id)).json(),
+    getModelById: async(id:string) => (await api.get(`models/${id}`)).json(),
 
     startTraining: async (values:model_values) => (await api.post("training/start",values)).json(),
-    getTrainingStatus: async (id:string) => (await api.get("training/"+id+"/status")).json(),
+    getTrainingStatus: async (id:string) => (await api.get(`training/${id}/status`)).json(),
     stopTraining: async (id:string) => await api.post(`training/${id}/stop`,{}),
 
 
