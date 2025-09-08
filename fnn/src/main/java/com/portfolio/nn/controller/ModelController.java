@@ -33,7 +33,7 @@ public class ModelController {
 
     //
     @GetMapping("/models/{id}")
-    public ResponseEntity<Object> getModelById(@PathVariable String id) {
+    public ResponseEntity<Object> getModelById(@PathVariable("id") String id) {
         return ResponseEntity.ok(Map.of(
                 "id", id,
                 "name", "MNIST Classifier",
@@ -46,8 +46,8 @@ public class ModelController {
     }
 
     @DeleteMapping("/models/{id}")
-    public ResponseEntity<Object> deleteModelById(@PathVariable String id) {
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(
+    public ResponseEntity<Object> deleteModelById(@PathVariable("id") String id) {
+        return ResponseEntity.status(HttpStatus.OK).body(
                 "Model with id " + id + " deleted");
     }
 }

@@ -17,12 +17,12 @@ public class ResultController {
 
     @GetMapping("/results")
     public ResponseEntity<Object> getResults() {
-        return ResponseEntity.status(HttpStatus.OK).body(
-                "List of results");
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                "message", "List of results"));
     }
 
-    @GetMapping("/results/{resultId}")
-    public ResponseEntity<Object> getResultById(@PathVariable String resultId) {
+    @GetMapping("/results/{id}")
+    public ResponseEntity<Object> getResultById(@PathVariable("id") String resultId) {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of(
                 "id", resultId,
                 "modelId", "tmp",

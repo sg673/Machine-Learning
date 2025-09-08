@@ -23,10 +23,10 @@ public class TrainingController {
                 "status", "started"));
     }
 
-    @GetMapping("/training/{sessionId}/status")
-    public ResponseEntity<Object> getStatusById(@PathVariable String id) {
+    @GetMapping("/training/{id}/status")
+    public ResponseEntity<Object> getStatusById(@PathVariable("id") String sessionId) {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-                "jobId", id,
+                "jobId", sessionId,
                 "status", "in progress",
                 "epoch", 5,
                 "batch", 44,
@@ -34,9 +34,9 @@ public class TrainingController {
                 "accuracy", 92.3));
     }
 
-    @PostMapping("/training/{sessionId}/stop")
-    public ResponseEntity<Object> stopTrainingById(@PathVariable String id) {
+    @PostMapping("/training/{id}/stop")
+    public ResponseEntity<Object> stopTrainingById(@PathVariable("id") String sessionId) {
         return ResponseEntity.status(HttpStatus.OK).body(
-                "Training job " + id + " stopped");
+                "Training job " + sessionId + " stopped");
     }
 }
