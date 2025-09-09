@@ -1,4 +1,5 @@
 import { StatsCard } from '../components/StatsCard';
+import { ModelForm } from '../components/modelForm';
 import robotIcon from '../assets/robot.svg';
 import lightningIcon from '../assets/lightning-filled.svg';
 import checkmarkIcon from '../assets/checkmark-circle.svg';
@@ -22,10 +23,10 @@ export function Dashboard() {
           <h3 className="text-xl font-bold mb-4">Model Training</h3>
           <div className="space-y-4 justify-center">
             <button className="btn w-full">
-              Upload Data
+              New Model
             </button>
             <button className="btn-sec w-full">
-              Configure Network
+              Load Model
             </button>
             <button className="btn-acc w-full">
               Start Training
@@ -53,7 +54,7 @@ export function Dashboard() {
       <div className="card">
         <h3 className="text-xl font-bold mb-4">Training Progress & Results</h3>
         <div className="h-64 bg-bg rounded border border-border flex items-center justify-center">
-          <p className="text-text-col-alt">Training visualization will appear here</p>
+            <ModelForm/>
         </div>
       </div>
     </div>

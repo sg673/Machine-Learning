@@ -7,10 +7,12 @@ export enum PAGES {
 }
 
 export type model_values = {
+    modelName:string,
+    trainingData:string,
     epochs:number,
     batchSize:number,
     learningRate:number,
-    layers: number[],
+    layers: string,
     activationFunction:string
 
 }

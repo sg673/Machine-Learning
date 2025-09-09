@@ -29,6 +29,7 @@ export const api = {
     getModels: async () => (await api.get("models")).json(),
     deleteModelById: async (id: string) => await api.delete(`models/${id}`),
     getModelById: async(id:string) => (await api.get(`models/${id}`)).json(),
+    createModel: async (values:model_values) => (await api.post("models",values)).json(),
 
     startTraining: async (values:model_values) => (await api.post("training/start",values)).json(),
     getTrainingStatus: async (id:string) => (await api.get(`training/${id}/status`)).json(),
