@@ -1,6 +1,7 @@
 package com.portfolio.nn.network;
 
 import com.google.gson.Gson;
+import com.portfolio.nn.model.TrainingSession;
 import com.portfolio.nn.network.activation.ActivationFunction;
 import com.portfolio.nn.util.DataUtils;
 
@@ -100,18 +101,21 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
         return DataUtils.getMaxIndex(output);
     }
 
-    public void train(double[][] x, double[][] y, double learningRate, int epochs, int numBatches) {
+    public void train(double[][] x, double[][] y, double learningRate, int epochs, int numBatches,
+            TrainingSession session) {
         long startTime = System.currentTimeMillis();
         int batchSize = x.length / numBatches;
         // Progress update frequency, ensures a maximum of 100 updates per epoch
         int printInterval = Math.max(1, numBatches / 100);
 
         for (int epoch = 0; epoch < epochs; epoch++) {
+            session.setCurrentEpoch(epoch + 1);
             int correctPredictions = 0;
             int totalSamples = 0;
 
             for (int batch = 0; batch < numBatches; batch++) {
                 // batch boundaries with remainder handling for last batch
+                session.setCurrentBatch(batch + 1);
                 int start = batch * batchSize;
                 int end = (batch == numBatches - 1) ? x.length : start + batchSize;
 
@@ -151,6 +155,7 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
                 // Calculate and display progress metrics
                 // FIX ME - eta is not displaying correctly
                 double accuracy = (double) correctPredictions / totalSamples;
+                session.setAccuracy(accuracy);
                 long elapsed = System.currentTimeMillis() - startTime;
                 int totalBatches = epochs * numBatches;
                 int completedBatches = epoch * numBatches + batch + 1;
@@ -170,7 +175,7 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
 
     @Override
     public void train(double[][] x, double[][] y, double learningRate, int epochs) {
-        train(x, y, learningRate, epochs, x.length);
+        train(x, y, learningRate, epochs, x.length, new TrainingSession(null, null, epochs, epochs));
     }
 
     private void accumulateGradients(double[][] activations, double[] target,

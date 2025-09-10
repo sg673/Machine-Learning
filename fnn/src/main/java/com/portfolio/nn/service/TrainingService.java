@@ -51,7 +51,7 @@ public class TrainingService {
                 session.setRunning(true);
                 sessions.put(sessionId, session);
 
-                network.train(images, labels, model.getLearningRate(), model.getEpochs(), totalBatches);
+                network.train(images, labels, model.getLearningRate(), model.getEpochs(), totalBatches, session);
                 session.setStatus(SessionStatus.COMPLETED);
                 session.setRunning(false);
 
