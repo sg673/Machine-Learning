@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.portfolio.nn.constants.SessionStatus;
 import com.portfolio.nn.model.TrainingSession;
 import com.portfolio.nn.model.modelModel;
 import com.portfolio.nn.service.TrainingService;
@@ -31,7 +32,7 @@ public class TrainingController {
         String sessionId = trainingService.startTraining(model);
         return ResponseEntity.ok(Map.of(
                 "sessionId", sessionId,
-                "status", "started"));
+                "status", SessionStatus.INITIALIZED));
     }
 
     @GetMapping("/training/{id}/status")
@@ -42,7 +43,8 @@ public class TrainingController {
                     "Training job " + sessionId + " not found");
         }
         double progress = session.getTotalEpochs() > 0
-                ? ((double) (session.getCurrentEpoch() - 1) * session.getTotalBatches() + session.getCurrentBatch()) /
+                ? ((double) (session.getCurrentEpoch() - 1) * session.getTotalBatches()
+                        + session.getCurrentBatch()) /
                         (session.getTotalEpochs() * session.getTotalBatches()) * 100
                 : 0;
         return ResponseEntity.status(HttpStatus.OK).body(Map.of(
@@ -58,7 +60,8 @@ public class TrainingController {
 
     @PostMapping("/training/{id}/stop")
     public ResponseEntity<Object> stopTrainingById(@PathVariable("id") String sessionId) {
-        return ResponseEntity.status(HttpStatus.OK).body(
-                "Training job " + sessionId + " stopped");
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                "sessionId", sessionId));
+
     }
 }

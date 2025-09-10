@@ -10,7 +10,7 @@ public class TrainingSession {
     private int currentEpoch;
     private final int totalEpochs;
     private int currentBatch;
-    private final int totalBatches;
+    private int totalBatches;
     private double accuracy;
 
     private boolean isRunning;
@@ -82,5 +82,9 @@ public class TrainingSession {
 
     public void setRunning(boolean running) {
         isRunning = running;
+    }
+
+    public void setTotalBatches(int totalBatches) {
+        this.totalBatches = totalBatches;
     }
 }

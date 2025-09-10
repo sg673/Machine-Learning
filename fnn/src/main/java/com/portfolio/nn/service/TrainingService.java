@@ -38,6 +38,8 @@ public class TrainingService {
             throw new RuntimeException("Dataset not recognised" + model.getTrainingData());
         }
 
+        TrainingSession session = new TrainingSession(sessionId, network, model.getEpochs(), 0);
+        sessions.put(sessionId, session);
         new Thread(() -> {
             try {
                 DataLoader.Dataset dataset = loader.loadTraining();
@@ -45,22 +47,17 @@ public class TrainingService {
                 double[][] labels = DataUtils.oneHotEncode(dataset.getLabels());
 
                 int totalBatches = images.length / model.getBatchSize();
-
-                TrainingSession session = new TrainingSession(sessionId, network, model.getEpochs(), totalBatches);
+                session.setTotalBatches(totalBatches);
                 session.setStatus(SessionStatus.TRAINING);
                 session.setRunning(true);
-                sessions.put(sessionId, session);
 
                 network.train(images, labels, model.getLearningRate(), model.getEpochs(), totalBatches, session);
                 session.setStatus(SessionStatus.COMPLETED);
                 session.setRunning(false);
 
             } catch (IOException e) {
-                TrainingSession session = getSession(sessionId);
-                if (session != null) {
-                    session.setStatus(SessionStatus.FAILED);
-                    session.setRunning(false);
-                }
+                session.setStatus(SessionStatus.FAILED);
+                session.setRunning(false);
             }
         }).start();
 
