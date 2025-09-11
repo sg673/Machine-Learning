@@ -60,8 +60,10 @@ public class TrainingController {
 
     @PostMapping("/training/{id}/stop")
     public ResponseEntity<Object> stopTrainingById(@PathVariable("id") String sessionId) {
+        trainingService.stopSession(sessionId);
         return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-                "sessionId", sessionId));
+                "sessionId", sessionId,
+                "status", SessionStatus.STOPPED));
 
     }
 }

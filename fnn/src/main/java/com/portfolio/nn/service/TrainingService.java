@@ -67,4 +67,12 @@ public class TrainingService {
     public TrainingSession getSession(String sessionId) {
         return sessions.get(sessionId);
     }
+
+    public void stopSession(String sessionId) {
+        TrainingSession session = sessions.get(sessionId);
+        if (session != null && session.isRunning()) {
+            session.setRunning(false);
+            session.setStatus(SessionStatus.STOPPED);
+        }
+    }
 }
