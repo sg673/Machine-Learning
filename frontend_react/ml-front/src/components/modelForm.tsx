@@ -1,35 +1,41 @@
-import React from "react";
+import {useState} from "react";
 import { api } from "../services/api";
+import { DATASET_CONFIG } from "../services/constants";
 
 interface ModelFormProps {
     isOpen:boolean;
     onClose: () => void;
+    onSessionCreated: (sessionId:string) => void;
 }
 
-export function ModelForm({isOpen,onClose}:ModelFormProps){
-    const [sessionId, setSessionId] = React.useState<string>("");
+export function ModelForm({isOpen, onClose, onSessionCreated}:ModelFormProps){
+    const [selectedDataset, setSelectedDataset] = useState<string>("MNIST");
+
     const handleSubmit = async (event:React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         
         const formData = new FormData(event.currentTarget);
+        const hiddenLayers = formData.get('hiddenLayers') as string;
+        const config = DATASET_CONFIG[selectedDataset as keyof typeof DATASET_CONFIG];
+
+        const layers = hiddenLayers ? 
+            `${config.inputSize},${hiddenLayers},${config.outputSize}` : 
+            `${config.inputSize},${config.outputSize}`;
+
         const model = {
             modelName: formData.get('modelName') as string,
             trainingData: formData.get('trainingData') as string,
             epochs: parseInt(formData.get('epochs') as string || '0'),
             batchSize: parseInt(formData.get('batchSize') as string || '0'),
             learningRate: parseFloat(formData.get('learningRate') as string || '0'),
-            layers: formData.get('layers') as string,
+            layers,
             activationFunction: formData.get('activationFunction') as string
         };
         try{
             const response = await api.startTraining(model);
-            setSessionId(response.sessionId);
+            onSessionCreated(response.sessionId);
             console.log(response);
             
-            const update = await api.getTrainingStatus(response.sessionId);
-            console.group("Training Status Update");
-            console.log("Checking status for session:", update);
-            console.groupEnd();
             onClose();
             
 
@@ -40,6 +46,7 @@ export function ModelForm({isOpen,onClose}:ModelFormProps){
 
     }
     if(!isOpen) return null;
+    const config = DATASET_CONFIG[selectedDataset as keyof typeof DATASET_CONFIG];
     return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-bg-alt border border-border rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -56,29 +63,45 @@ export function ModelForm({isOpen,onClose}:ModelFormProps){
           
           <div>
             <label className="block text-sm font-medium text-text-col-alt mb-1">Training Data</label>
-            <select name="trainingData" className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt">
+            <select name="trainingData"
+                className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt"
+                value={selectedDataset}
+                onChange={(e) => setSelectedDataset(e.target.value)}    
+            >
               <option value="MNIST">MNIST</option>
             </select>
+            <p className="text-xs text-text-col mt-1">
+                Input Size: {config.inputSize}, Output Size: {config.outputSize}
+            </p>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-text-col-alt mb-1">Epochs</label>
-            <input type="number" name="epochs" min="1" max="1000" defaultValue="10" required className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt" />
+            <input type="number" name="epochs" 
+                min="1" max="1000" defaultValue="10" required className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt" />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-text-col-alt mb-1">Batch Size</label>
-            <input type="number" name="batchSize" min="1" max="1024" defaultValue="32" required className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt" />
+            <input type="number" name="batchSize" 
+                min="1" max="1024" defaultValue="32" required className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt" />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-text-col-alt mb-1">Learning Rate</label>
-            <input type="number" name="learningRate" step="0.001" min="0.001" max="1.0" defaultValue="0.001" required className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt" />
+            <input type="number" name="learningRate" step="0.001" 
+                min="0.001" max="1.0" defaultValue="0.001" required className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt" />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-text-col-alt mb-1">Layers</label>
-            <input type="text" name="layers" placeholder="e.g. 64,32,10" required className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt" />
+            <label className="block text-sm font-medium text-text-col-alt mb-1">Hidden Layers</label>
+            <input type="text" name="hiddenLayers" 
+                placeholder="e.g. 128,64 (optional)"
+                 className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt" 
+            />
+            <p className="text-xs text-text-col mt-1">
+                Comma-separated sizes for hidden layers. Leave blank for direct input to output connection
+            </p>
           </div>
           
           <div>

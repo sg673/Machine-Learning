@@ -1,5 +1,6 @@
 import { StatsCard } from '../components/StatsCard';
 import { useState } from 'react';
+import { api } from '../services/api';
 import { ModelForm } from '../components/modelForm';
 import robotIcon from '../assets/robot.svg';
 import lightningIcon from '../assets/lightning-filled.svg';
@@ -8,6 +9,15 @@ import chartIcon from '../assets/baseline-bar-chart.svg';
 
 export function Dashboard() {
     const [isModelFormOpen, setIsModelFormOpen] = useState(false);
+    const [sessionId, setSessionId] = useState<string>("");
+   
+    const handleSessionCreated = async (sessionId: string) => {
+        setSessionId(sessionId);
+        const update = await api.getTrainingStatus(sessionId);
+        console.group("Training Status Update");
+        console.log("Checking status for session:", update);
+        console.groupEnd();
+    }
   return (
     <div className="p-6 bg-bg min-h-screen">
       {/* Stats Cards */}
@@ -59,7 +69,10 @@ export function Dashboard() {
       <div className="card">
         <h3 className="text-xl font-bold mb-4">Training Progress & Results</h3>
         <div className="h-64 bg-bg rounded border border-border flex items-center justify-center">
-            <ModelForm isOpen={isModelFormOpen} onClose={()=>setIsModelFormOpen(false)}/>
+            <ModelForm isOpen={isModelFormOpen}
+                onClose={()=>setIsModelFormOpen(false)}
+                onSessionCreated={handleSessionCreated}
+            />
         </div>
       </div>
     </div>
