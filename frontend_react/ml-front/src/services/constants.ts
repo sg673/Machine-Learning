@@ -17,7 +17,19 @@ export type model_values = {
     activationFunction:string
 
 }
+export type training_session = {
+    sessionId: string,
+    status: 'INITIALIZED' | 'TRAINING' | 'COMPLETED' | 'FAILED' | 'STOPPED',
+    progress: number,
+    epoch: number,
+    totalEpochs: number,
+    batch: number,
+    totalBatches: number,
+    accuracy: number
+}
+
 
 export const DATASET_CONFIG = {
     "MNIST": {inputSize:784, outputSize:10}
 }
+

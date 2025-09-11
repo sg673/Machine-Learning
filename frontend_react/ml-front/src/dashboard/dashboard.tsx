@@ -1,23 +1,40 @@
 import { StatsCard } from '../components/StatsCard';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { ModelForm } from '../components/modelForm';
 import robotIcon from '../assets/robot.svg';
 import lightningIcon from '../assets/lightning-filled.svg';
 import checkmarkIcon from '../assets/checkmark-circle.svg';
 import chartIcon from '../assets/baseline-bar-chart.svg';
+import type { training_session } from '../services/constants';
 
 export function Dashboard() {
     const [isModelFormOpen, setIsModelFormOpen] = useState(false);
     const [sessionId, setSessionId] = useState<string>("");
+    const [trainingStatus, setTrainingStatus] = useState<training_session | null>(null);
    
     const handleSessionCreated = async (sessionId: string) => {
         setSessionId(sessionId);
-        const update = await api.getTrainingStatus(sessionId);
-        console.group("Training Status Update");
-        console.log("Checking status for session:", update);
-        console.groupEnd();
     }
+
+    useEffect(() => {
+        if (!sessionId) return;
+
+        const interval = setInterval(async () => {
+            try {
+                const status = await api.getTrainingStatus(sessionId);
+                setTrainingStatus(status);
+                
+                if (status.status === 'COMPLETED' || status.status === 'FAILED') {
+                    clearInterval(interval);
+                }
+            } catch (error) {
+                console.error("Error fetching training status:", error);
+            }
+        }, 500);
+
+        return () => clearInterval(interval);
+    }, [sessionId]);
   return (
     <div className="p-6 bg-bg min-h-screen">
       {/* Stats Cards */}
@@ -69,12 +86,40 @@ export function Dashboard() {
       <div className="card">
         <h3 className="text-xl font-bold mb-4">Training Progress & Results</h3>
         <div className="h-64 bg-bg rounded border border-border flex items-center justify-center">
-            <ModelForm isOpen={isModelFormOpen}
-                onClose={()=>setIsModelFormOpen(false)}
-                onSessionCreated={handleSessionCreated}
-            />
+            {trainingStatus ? (
+                <div className="space-y-2">
+                    <div className="flex justify-between">
+                        <span className="text-text-col-alt mr-2">Status:</span>
+                        <span className="text-text-col">{trainingStatus.status}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-text-col-alt mr-2">Progress:</span>
+                        <span className="text-text-col">{trainingStatus.progress}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-text-col-alt mr-2">Epoch:</span>
+                        <span className="text-text-col">{trainingStatus.epoch}/{trainingStatus.totalEpochs}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-text-col-alt mr-2">Batch:</span>
+                        <span className="text-text-col">{trainingStatus.batch}/{trainingStatus.totalBatches}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-text-col-alt mr-2">Accuracy:</span>
+                        <span className="text-text-col">{trainingStatus.accuracy * 100}%</span>
+                    </div>
+                </div>
+            ): (
+                <div className="flex items-center justify-center h-full">
+                    <p className="text-text-col-alt">No active training session</p>
+                </div>
+            )}
         </div>
       </div>
+    <ModelForm isOpen={isModelFormOpen}
+        onClose={()=>setIsModelFormOpen(false)}
+        onSessionCreated={handleSessionCreated}
+    />
     </div>
   );
 }

@@ -55,7 +55,8 @@ public class TrainingController {
                 "batch", session.getCurrentBatch(),
                 "totalBatches", session.getTotalBatches(),
                 "progress", Math.round(progress * 100.0) / 100.0,
-                "accuracy", Math.round(session.getAccuracy() * 100.0) / 100.0));
+
+                "accuracy", session.getAccuracy()));
     }
 
     @PostMapping("/training/{id}/stop")
