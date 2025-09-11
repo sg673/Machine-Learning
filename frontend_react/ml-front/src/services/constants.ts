@@ -6,6 +6,7 @@ export enum PAGES {
     SETTINGS = 'settings',
 }
 
+
 export type model_values = {
     modelName:string,
     trainingData:string,
@@ -15,4 +16,8 @@ export type model_values = {
     layers: string,
     activationFunction:string
 
+}
+
+export const DATASET_CONFIG = {
+    "MNIST": {inputSize:784, outputSize:10}
 }

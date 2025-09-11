@@ -1,4 +1,5 @@
 import { StatsCard } from '../components/StatsCard';
+import { useState } from 'react';
 import { ModelForm } from '../components/modelForm';
 import robotIcon from '../assets/robot.svg';
 import lightningIcon from '../assets/lightning-filled.svg';
@@ -6,6 +7,7 @@ import checkmarkIcon from '../assets/checkmark-circle.svg';
 import chartIcon from '../assets/baseline-bar-chart.svg';
 
 export function Dashboard() {
+    const [isModelFormOpen, setIsModelFormOpen] = useState(false);
   return (
     <div className="p-6 bg-bg min-h-screen">
       {/* Stats Cards */}
@@ -22,7 +24,10 @@ export function Dashboard() {
         <div className="card">
           <h3 className="text-xl font-bold mb-4">Model Training</h3>
           <div className="space-y-4 justify-center">
-            <button className="btn w-full">
+            <button 
+                className="btn w-full"
+                onClick={() => setIsModelFormOpen(true)}
+            >
               New Model
             </button>
             <button className="btn-sec w-full">
@@ -54,7 +59,7 @@ export function Dashboard() {
       <div className="card">
         <h3 className="text-xl font-bold mb-4">Training Progress & Results</h3>
         <div className="h-64 bg-bg rounded border border-border flex items-center justify-center">
-            <ModelForm/>
+            <ModelForm isOpen={isModelFormOpen} onClose={()=>setIsModelFormOpen(false)}/>
         </div>
       </div>
     </div>
