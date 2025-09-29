@@ -68,6 +68,7 @@ public class TrainingService {
         return sessions.get(sessionId);
     }
 
+    // ADD - MUST stop the running model
     public void stopSession(String sessionId) {
         TrainingSession session = sessions.get(sessionId);
         if (session != null && session.isRunning()) {
