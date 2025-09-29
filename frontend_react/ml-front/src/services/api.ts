@@ -100,7 +100,7 @@ export const trainingApi = {
   start: (values: Model) =>
     apiClient.post("training/start", values).then(res => res.json()),
   status: (id: string) =>
-    getJson<Record<string, Training>>(`training/${id}/status`),
+    getJson<Training>(`training/${id}/status`),
   stop: (id: string) =>
     apiClient.post(`training/${id}/stop`, {}).then(res => res.json()),
 };
