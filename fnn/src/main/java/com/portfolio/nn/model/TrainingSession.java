@@ -20,10 +20,12 @@ public class TrainingSession {
   private int currentBatch;
   private int totalBatches;
   private double accuracy;
+  private final String modelName;
 
   private boolean isRunning;
 
-  public TrainingSession(String sessionId, FeedForwardNetwork network, int totalEpochs, int totalBatches) {
+  public TrainingSession(String sessionId, FeedForwardNetwork network, int totalEpochs, int totalBatches,
+      String modelName) {
     this.sessionId = sessionId;
     this.network = network;
     this.totalEpochs = totalEpochs;
@@ -33,6 +35,7 @@ public class TrainingSession {
     this.currentBatch = 0;
     this.accuracy = 0.0;
     this.isRunning = false;
+    this.modelName = modelName;
   }
 
   /**
@@ -161,4 +164,9 @@ public class TrainingSession {
   public void setTotalBatches(int totalBatches) {
     this.totalBatches = totalBatches;
   }
+
+  public String getModelName() {
+    return modelName;
+  }
+
 }
