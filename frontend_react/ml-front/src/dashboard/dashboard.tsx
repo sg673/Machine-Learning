@@ -1,17 +1,17 @@
 import { StatsCard } from '../components/StatsCard';
 import { useState, useEffect } from 'react';
-import { api } from '../services/api';
+import { trainingApi } from '../services/api';
 import { ModelForm } from '../components/modelForm';
 import robotIcon from '../assets/robot.svg';
 import lightningIcon from '../assets/lightning-filled.svg';
 import checkmarkIcon from '../assets/checkmark-circle.svg';
 import chartIcon from '../assets/baseline-bar-chart.svg';
-import type { training_session } from '../services/constants';
+import type { Training } from '../services/constants';
 
 export function Dashboard() {
     const [isModelFormOpen, setIsModelFormOpen] = useState(false);
     const [sessionId, setSessionId] = useState<string>("");
-    const [trainingStatus, setTrainingStatus] = useState<training_session | null>(null);
+    const [trainingStatus, setTrainingStatus] = useState<Training | null>(null);
    
     const handleSessionCreated = async (sessionId: string) => {
         setSessionId(sessionId);
@@ -22,7 +22,8 @@ export function Dashboard() {
 
         const interval = setInterval(async () => {
             try {
-                const status = await api.getTrainingStatus(sessionId);
+              const status = await trainingApi.status(sessionId);
+                //const status = await api.getTrainingStatus(sessionId);
                 setTrainingStatus(status);
                 
                 if (status.status === 'COMPLETED' || status.status === 'FAILED') {
