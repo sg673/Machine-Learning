@@ -38,6 +38,18 @@ export const api = {
 
     getResults: async () => (await api.get("results")).json(),
     getResultById: async (id: string) => (await api.get(`results/${id}`)).json(),
-    
+}
 
+const request = async (endpoint: string,options:RequestInit={}) => {
+  try{
+    const res = await fetch(`${BASE_URL}${endpoint}`,options);
+    if(!res.ok){
+      const errorText = await res.text();
+      throw new Error(`API Error ${res.status}: ${errorText}`);
+    }
+    return res;
+  } catch(err) {
+    console.error("API Request Failed", err);
+    throw err;
+  }
 }
