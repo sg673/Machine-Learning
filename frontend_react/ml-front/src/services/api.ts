@@ -1,4 +1,4 @@
-import type { model_values } from "./constants";
+import type { Model, Training, Result } from "./constants";
 
 const BASE_URL = "http://localhost:8080/api/v1/";
 
@@ -29,15 +29,15 @@ export const api = {
   getModels: async () => (await api.get("models")).json(),
   deleteModelById: async (id: string) => await api.delete(`models/${id}`),
   getModelById: async (id: string) => (await api.get(`models/${id}`)).json(),
-  createModel: async (values: model_values) => (await api.post("models", values)).json(),
+  createModel: async (values: Model) => (await api.post("models", values)).json(),
 
-  startTraining: async (values: model_values) => (await api.post("training/start", values)).json(),
+  startTraining: async (values: Model) => (await api.post("training/start", values)).json(),
   getTrainingStatus: async (id: string) => (await api.get(`training/${id}/status`)).json(),
   stopTraining: async (id: string) => await api.post(`training/${id}/stop`, {}),
 
 
-  getResults: async () => (await api.get("results")).json(),
-  getResultById: async (id: string) => (await api.get(`results/${id}`)).json(),
+  // getResults: async () => (await api.get("results")).json(),
+  // getResultById: async (id: string) => (await api.get(`results/${id}`)).json(),
 }
 
 const request = async (endpoint: string, options: RequestInit = {}, timeout = 10000) => {
@@ -76,3 +76,36 @@ const apiClient = {
   delete: (endpoint: string) => request(endpoint, { method: "DELETE" })
 }
 
+const getJson = async <T>(endpoint: string): Promise<T> =>
+  (await apiClient.get(endpoint)).json();
+
+export const testApi = {
+  ping: async () => (await apiClient.get("test")).text(),
+};
+
+export const dashboardApi = {
+  getStats: () => getJson<Record<string, string>>("dashboard/stats"),
+};
+
+export const modelApi = {
+  getAll: () => getJson<Model[]>("models"),
+  getById: (id: string) => getJson<Model>(`models/${id}`),
+  create: (values: Model) =>
+    apiClient.post("models", values).then(res => res.json()),
+  delete: (id: string) =>
+    apiClient.delete(`models/${id}`).then(res => res.json()),
+};
+
+export const trainingApi = {
+  start: (values: Model) =>
+    apiClient.post("training/start", values).then(res => res.json()),
+  status: (id: string) =>
+    getJson<Record<string, Training>>(`training/${id}/status`),
+  stop: (id: string) =>
+    apiClient.post(`training/${id}/stop`, {}).then(res => res.json()),
+};
+
+export const resultsApi = {
+  getAll: () => getJson<Result>("results"),
+  getById: (id: string) => getJson<Result>(`results/${id}`),
+}

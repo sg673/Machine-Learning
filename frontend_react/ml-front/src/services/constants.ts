@@ -7,7 +7,7 @@ export enum PAGES {
 }
 
 
-export type model_values = {
+export type Model = {
     modelName:string,
     trainingData:string,
     epochs:number,
@@ -17,7 +17,7 @@ export type model_values = {
     activationFunction:string
 
 }
-export type training_session = {
+export type Training = {
     sessionId: string,
     status: 'INITIALIZED' | 'TRAINING' | 'COMPLETED' | 'FAILED' | 'STOPPED',
     progress: number,
@@ -28,6 +28,16 @@ export type training_session = {
     accuracy: number
 }
 
+export type Result = {
+  id: string;
+  modelId: string;
+  sessionId: string;
+  finalAccuracy: number;
+  finalLoss: number;
+  trainingTime: number;
+  epochs: number;
+  completedAt: string;
+};
 
 export const DATASET_CONFIG = {
     "MNIST": {inputSize:784, outputSize:10}
