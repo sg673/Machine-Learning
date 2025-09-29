@@ -55,13 +55,13 @@ public class TrainingService {
         network.train(images, labels, model.getLearningRate(), model.getEpochs(), totalBatches, session);
         session.setStatus(SessionStatus.COMPLETED);
         session.setRunning(false);
-        session.Save(sessionId);
+        session.Save(session.getModelName());
 
       } catch (IOException e) {
         session.setStatus(SessionStatus.FAILED);
         session.setRunning(false);
         try {
-          session.Save(sessionId);
+          session.Save(session.getModelName());
         } catch (IOException ex) {
           System.out.println("Could not save model:" + session.getModelName() + "\n" + ex);
         }
@@ -83,7 +83,7 @@ public class TrainingService {
       session.setRunning(false);
       session.setStatus(SessionStatus.STOPPED);
       try {
-        session.Save(sessionId);
+        session.Save(session.getModelName());
       } catch (IOException ex) {
         System.out.println("Could not save model:" + session.getModelName() + "\n" + ex);
       }
