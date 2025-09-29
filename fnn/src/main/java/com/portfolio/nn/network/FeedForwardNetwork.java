@@ -101,10 +101,9 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
 
   public void train(double[][] x, double[][] y, double learningRate, int epochs, int numBatches,
       TrainingSession session) {
-    long startTime = System.currentTimeMillis();
+
     int batchSize = x.length / numBatches;
     // Progress update frequency, ensures a maximum of 100 updates per epoch
-    int printInterval = Math.max(1, numBatches / 100);
 
     for (int epoch = 0; epoch < epochs; epoch++) {
       session.setCurrentEpoch(epoch + 1);
@@ -154,18 +153,7 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
         // FIX ME - eta is not displaying correctly
         double accuracy = (double) correctPredictions / totalSamples;
         session.setAccuracy(accuracy);
-        long elapsed = System.currentTimeMillis() - startTime;
-        int totalBatches = epochs * numBatches;
-        int completedBatches = epoch * numBatches + batch + 1;
-        long avgTimePerBatch = elapsed / completedBatches;
-        long eta = avgTimePerBatch * (totalBatches - completedBatches);
 
-        if (batch % printInterval == 0 || batch == numBatches - 1) {
-          System.out.printf(
-              "\rEpoch %d/%d | Batch %d/%d | Accuracy: %.2f%% | ETA: %dm %ds | Elapsed: %dm %ds",
-              epoch + 1, epochs, batch + 1, numBatches, accuracy * 100, eta / 60000, (eta % 60000) / 1000,
-              elapsed / 60000, (elapsed % 60000) / 1000);
-        }
       }
     }
     System.out.println();
