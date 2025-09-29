@@ -40,15 +40,19 @@ export const api = {
   getResultById: async (id: string) => (await api.get(`results/${id}`)).json(),
 }
 
-const request = async (endpoint: string, options: RequestInit = {}) => {
+const request = async (endpoint: string, options: RequestInit = {}, timeout = 10000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
   try {
-    const res = await fetch(`${BASE_URL}${endpoint}`, options);
+    const res = await fetch(`${BASE_URL}${endpoint}`, { ...options, signal: controller.signal });
+    clearTimeout(id);
     if (!res.ok) {
       const errorText = await res.text();
       throw new Error(`API Error ${res.status}: ${errorText}`);
     }
     return res;
   } catch (err) {
+    clearTimeout(id);
     console.error("API Request Failed", err);
     throw err;
   }
@@ -59,15 +63,16 @@ const apiClient = {
 
   post: (endpoint: string, body?: unknown) => request(endpoint, {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   }),
 
   put: (endpoint: string, body?: unknown) => request(endpoint, {
     method: "PUT",
-    headers: {"Content-Type":"application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   }),
-  
-  delete: (endpoint: string) => request(endpoint, {method: "DELETE"})
+
+  delete: (endpoint: string) => request(endpoint, { method: "DELETE" })
 }
+
