@@ -107,7 +107,7 @@ export function Dashboard() {
                     </div>
                     <div className="flex justify-between">
                         <span className="text-text-col-alt mr-2">Accuracy:</span>
-                        <span className="text-text-col">{trainingStatus.accuracy * 100}%</span>
+                        <span className="text-text-col">{(trainingStatus.accuracy * 100).toFixed(2)}%</span>
                     </div>
                 </div>
             ): (
