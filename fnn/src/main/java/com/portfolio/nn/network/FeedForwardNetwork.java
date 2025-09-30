@@ -161,7 +161,7 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
 
   @Override
   public void train(double[][] x, double[][] y, double learningRate, int epochs) {
-    train(x, y, learningRate, epochs, x.length, new TrainingSession(null, null, epochs, epochs, "tmp"));
+    train(x, y, learningRate, epochs, x.length, new TrainingSession(null, null, epochs, epochs, "tmp", "MNIST"));
   }
 
   private void accumulateGradients(double[][] activations, double[] target,

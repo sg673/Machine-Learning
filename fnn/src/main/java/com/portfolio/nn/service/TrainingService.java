@@ -38,7 +38,8 @@ public class TrainingService {
       throw new RuntimeException("Dataset not recognised" + model.getTrainingData());
     }
 
-    TrainingSession session = new TrainingSession(sessionId, network, model.getEpochs(), 0, model.getModelName());
+    TrainingSession session = new TrainingSession(sessionId, network, model.getEpochs(), 0, model.getModelName(),
+        model.getTrainingData());
     sessions.put(sessionId, session);
     new Thread(() -> {
       try {

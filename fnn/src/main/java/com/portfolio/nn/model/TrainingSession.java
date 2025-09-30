@@ -21,11 +21,13 @@ public class TrainingSession {
   private int totalBatches;
   private double accuracy;
   private final String modelName;
+  @SuppressWarnings("unused")
+  private final String trainingData;
 
   private boolean isRunning;
 
   public TrainingSession(String sessionId, FeedForwardNetwork network, int totalEpochs, int totalBatches,
-      String modelName) {
+      String modelName, String trainingData) {
     this.sessionId = sessionId;
     this.network = network;
     this.totalEpochs = totalEpochs;
@@ -36,6 +38,7 @@ public class TrainingSession {
     this.accuracy = 0.0;
     this.isRunning = false;
     this.modelName = modelName;
+    this.trainingData = trainingData;
   }
 
   /**
