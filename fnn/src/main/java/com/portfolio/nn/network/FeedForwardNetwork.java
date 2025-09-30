@@ -15,11 +15,11 @@ import java.util.Random;
  * Feed Forward Neural Network implementation.
  */
 public class FeedForwardNetwork implements NeuralNetworkBase {
+  private ActivationFunction activationFunction;
   private int[] layers;
   private double[][][] weights;
   private double[][] biases;
   private transient final Random rand = new Random();
-  private ActivationFunction activationFunction;
 
   public FeedForwardNetwork(int... layers) {
     this.layers = layers;

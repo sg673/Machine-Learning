@@ -13,7 +13,6 @@ import com.portfolio.nn.network.FeedForwardNetwork;
 
 public class TrainingSession {
   private final String sessionId;
-  private final FeedForwardNetwork network;
   private SessionStatus status;
   private int currentEpoch;
   private final int totalEpochs;
@@ -23,6 +22,7 @@ public class TrainingSession {
   private final String modelName;
   @SuppressWarnings("unused")
   private final String trainingData;
+  private final FeedForwardNetwork network;
 
   private boolean isRunning;
 
