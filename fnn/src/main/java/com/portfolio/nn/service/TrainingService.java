@@ -5,19 +5,28 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.google.gson.Gson;
 import com.portfolio.nn.constants.SessionStatus;
 import com.portfolio.nn.data.DataLoader;
 import com.portfolio.nn.data.MNISTLoader;
+import com.portfolio.nn.model.Model;
 import com.portfolio.nn.model.TrainingSession;
 import com.portfolio.nn.model.modelModel;
 import com.portfolio.nn.network.FeedForwardNetwork;
+import com.portfolio.nn.repo.ModelRepo;
 import com.portfolio.nn.util.DataUtils;
 
 @Service
 public class TrainingService {
+
+  @Autowired
+  private ModelRepo modelRepo;
   private final Map<String, TrainingSession> sessions = new ConcurrentHashMap<>();
+
+  private final Gson gson = new Gson();
 
   public String startTraining(modelModel model) {
     String sessionId = UUID.randomUUID().toString();
@@ -41,6 +50,14 @@ public class TrainingService {
     TrainingSession session = new TrainingSession(sessionId, network, model.getEpochs(), 0, model.getModelName(),
         model.getTrainingData());
     sessions.put(sessionId, session);
+
+    Model saveable = new Model();
+    saveable.setId(sessionId);
+    saveable.setName(session.getModelName());
+    saveable.setType(session.getNetwork().getClass().getName());
+    saveable.setLayers(model.getLayers());
+    saveable.setActivationFunction(model.getActivationFunction().name());
+    final ModelRepo repo = this.modelRepo;
     new Thread(() -> {
       try {
 
@@ -56,16 +73,17 @@ public class TrainingService {
         network.train(images, labels, model.getLearningRate(), model.getEpochs(), totalBatches, session);
         session.setStatus(SessionStatus.COMPLETED);
         session.setRunning(false);
-        session.Save(session.getModelName());
+        // session.Save(session.getModelName());
+
+        saveable.setBiases(gson.toJson(network.getBiases()));
+        saveable.setWeights(gson.toJson(network.getWeights()));
+        repo.save(saveable);
 
       } catch (IOException e) {
         session.setStatus(SessionStatus.FAILED);
         session.setRunning(false);
-        try {
-          session.Save(session.getModelName());
-        } catch (IOException ex) {
-          System.out.println("Could not save model:" + session.getModelName() + "\n" + ex);
-        }
+        // session.Save(session.getModelName());
+        repo.save(saveable);
 
       }
     }).start();
