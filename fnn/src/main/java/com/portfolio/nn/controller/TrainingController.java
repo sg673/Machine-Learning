@@ -24,47 +24,50 @@ import com.portfolio.nn.service.TrainingService;
 @RequestMapping("/api/v1")
 public class TrainingController {
 
-    @Autowired
-    private TrainingService trainingService;
+  @Autowired
+  private TrainingService trainingService;
 
-    @PostMapping(value = "/training/start", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> postStartTraining(@RequestBody modelModel model) {
-        String sessionId = trainingService.startTraining(model);
-        return ResponseEntity.ok(Map.of(
-                "sessionId", sessionId,
-                "status", SessionStatus.INITIALIZED));
+  @PostMapping(value = "/training/start", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Object> postStartTraining(@RequestBody modelModel model) {
+    try {
+      String sessionId = trainingService.startTraining(model);
+      return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+          "sessionId", sessionId,
+          "status", SessionStatus.INITIALIZED));
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
     }
+  }
 
-    @GetMapping("/training/{id}/status")
-    public ResponseEntity<Object> getStatusById(@PathVariable("id") String sessionId) {
-        TrainingSession session = trainingService.getSession(sessionId);
-        if (session == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    "Training job " + sessionId + " not found");
-        }
-        double progress = session.getTotalEpochs() > 0
-                ? ((double) (session.getCurrentEpoch() - 1) * session.getTotalBatches()
-                        + session.getCurrentBatch()) /
-                        (session.getTotalEpochs() * session.getTotalBatches()) * 100
-                : 0;
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-                "sessionId", sessionId,
-                "status", session.getStatus(),
-                "epoch", session.getCurrentEpoch(),
-                "totalEpochs", session.getTotalEpochs(),
-                "batch", session.getCurrentBatch(),
-                "totalBatches", session.getTotalBatches(),
-                "progress", Math.round(progress * 100.0) / 100.0,
-
-                "accuracy", session.getAccuracy()));
+  @GetMapping("/training/{id}/status")
+  public ResponseEntity<Object> getStatusById(@PathVariable("id") String sessionId) {
+    TrainingSession session = trainingService.getSession(sessionId);
+    if (session == null) {
+      return ResponseEntity.notFound().build();
     }
+    double progress = session.getTotalEpochs() > 0
+        ? ((double) (session.getCurrentEpoch() - 1) * session.getTotalBatches()
+            + session.getCurrentBatch()) /
+            (session.getTotalEpochs() * session.getTotalBatches()) * 100
+        : 0;
+    return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+        "sessionId", sessionId,
+        "status", session.getStatus(),
+        "epoch", session.getCurrentEpoch(),
+        "totalEpochs", session.getTotalEpochs(),
+        "batch", session.getCurrentBatch(),
+        "totalBatches", session.getTotalBatches(),
+        "progress", Math.round(progress * 100.0) / 100.0,
 
-    @PostMapping("/training/{id}/stop")
-    public ResponseEntity<Object> stopTrainingById(@PathVariable("id") String sessionId) {
-        trainingService.stopSession(sessionId);
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-                "sessionId", sessionId,
-                "status", SessionStatus.STOPPED));
+        "accuracy", session.getAccuracy()));
+  }
 
-    }
+  @PostMapping("/training/{id}/stop")
+  public ResponseEntity<Object> stopTrainingById(@PathVariable("id") String sessionId) {
+    trainingService.stopSession(sessionId);
+    return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+        "sessionId", sessionId,
+        "status", SessionStatus.STOPPED));
+
+  }
 }

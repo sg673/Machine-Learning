@@ -27,23 +27,18 @@ public class ModelController {
   @Autowired
   private ModelService modelService;
 
-  // Should return a list of all model names + their ids
   @GetMapping("/models")
   public ResponseEntity<Object> getModels() {
     return ResponseEntity.status(HttpStatus.OK).body(
         modelService.getAllModels());
   }
 
-  // May not be needed
+  // Deprecated 
   @PostMapping(value = "/models", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Object> postModels(@RequestBody modelModel model) {
     return ResponseEntity.ok(model);
-
-    // return ResponseEntity.status(HttpStatus.CREATED).body(
-    // "Model created");
   }
 
-  //
   @GetMapping("/models/{id}")
   public ResponseEntity<Object> getModelById(@PathVariable("id") String id) {
     Optional<Model> model = modelService.getModelById(id);
