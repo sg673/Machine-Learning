@@ -64,7 +64,21 @@ public class TrainingController {
 
   @PostMapping("/training/{id}/stop")
   public ResponseEntity<Object> stopTrainingById(@PathVariable("id") String sessionId) {
-    trainingService.stopSession(sessionId);
+    TrainingSession session = trainingService.getSession(sessionId);
+    if (session == null) {
+      return ResponseEntity.notFound().build();
+    }
+
+    if (session.getStatus() == SessionStatus.COMPLETED ||
+        session.getStatus() == SessionStatus.STOPPED) {
+      return ResponseEntity.badRequest().body(Map.of(
+          "error", "Session already finished",
+          "status", session.getStatus()));
+    }
+    boolean stopped = trainingService.stopSession(sessionId);
+    if (!stopped) {
+      return ResponseEntity.notFound().build();
+    }
     return ResponseEntity.status(HttpStatus.OK).body(Map.of(
         "sessionId", sessionId,
         "status", SessionStatus.STOPPED));

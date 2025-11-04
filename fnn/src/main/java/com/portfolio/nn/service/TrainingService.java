@@ -95,9 +95,8 @@ public class TrainingService {
     return sessions.get(sessionId);
   }
 
-  // ADD - MUST stop the running model
-  public void stopSession(String sessionId) {
-    TrainingSession session = sessions.get(sessionId);
+  public boolean stopSession(String sessionId) {
+    TrainingSession session = getSession(sessionId);
     if (session != null && session.isRunning()) {
       session.setRunning(false);
       session.setStatus(SessionStatus.STOPPED);
@@ -106,6 +105,8 @@ public class TrainingService {
       } catch (IOException ex) {
         System.out.println("Could not save model:" + session.getModelName() + "\n" + ex);
       }
+      return true;
     }
+    return false;
   }
 }
