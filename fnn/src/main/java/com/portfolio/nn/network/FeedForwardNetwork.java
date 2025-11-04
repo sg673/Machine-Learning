@@ -106,11 +106,13 @@ public class FeedForwardNetwork implements NeuralNetworkBase {
     // Progress update frequency, ensures a maximum of 100 updates per epoch
 
     for (int epoch = 0; epoch < epochs; epoch++) {
+      if(!session.isRunning()) break;
       session.setCurrentEpoch(epoch + 1);
       int correctPredictions = 0;
       int totalSamples = 0;
 
       for (int batch = 0; batch < numBatches; batch++) {
+        if(!session.isRunning()) break;
         // batch boundaries with remainder handling for last batch
         session.setCurrentBatch(batch + 1);
         int start = batch * batchSize;
