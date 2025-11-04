@@ -36,8 +36,13 @@ public class ModelService {
     model.setBiases(gson.toJson(biases));
     return modelRepo.save(model);
   }
-  public void deleteModelById(String id){
-    modelRepo.deleteById(id);
+  public boolean deleteModelById(String id){
+    Optional<Model> model = modelRepo.findById(id);
+    if(model.isPresent()){
+      modelRepo.deleteById(id);
+      return true;
+    }
+    return false;
   }
 
 

@@ -1,6 +1,5 @@
 package com.portfolio.nn.controller;
 
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,17 +46,8 @@ public class ModelController {
   //
   @GetMapping("/models/{id}")
   public ResponseEntity<Object> getModelById(@PathVariable("id") String id) {
-    // return ResponseEntity.ok(Map.of(
-    //     "id", id,
-    //     "name", "MNIST Classifier",
-    //     "type", "FFN",
-    //     "architecture", Map.of(
-    //         "inputSize", 784,
-    //         "hiddenLayers", new int[] { 128, 64 },
-    //         "outputSize", 10,
-    //         "activationFunction", "RELU")));
     Optional<Model> model = modelService.getModelById(id);
-    if (model.isPresent()){
+    if (model.isPresent()) {
       return ResponseEntity.status(HttpStatus.OK).body(model.get());
     } else {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
@@ -67,7 +57,11 @@ public class ModelController {
 
   @DeleteMapping("/models/{id}")
   public ResponseEntity<Object> deleteModelById(@PathVariable("id") String id) {
-    return ResponseEntity.status(HttpStatus.OK).body(
-        "Model with id " + id + " deleted");
+    boolean deleted = modelService.deleteModelById(id);
+    if (deleted) {
+      return ResponseEntity.noContent().build();
+    } else {
+      return ResponseEntity.notFound().build();
+    }
   }
 }
