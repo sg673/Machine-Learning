@@ -7,11 +7,18 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.google.gson.Gson;
 import com.portfolio.nn.constants.SessionStatus;
 import com.portfolio.nn.network.FeedForwardNetwork;
+import com.portfolio.nn.repo.ResultRepo;
 
 public class TrainingSession {
+
+  @Autowired
+  private ResultRepo repo;
+
   private final String sessionId;
   private SessionStatus status;
   private int currentEpoch;
@@ -23,11 +30,13 @@ public class TrainingSession {
   @SuppressWarnings("unused")
   private final String trainingData;
   private final FeedForwardNetwork network;
+  private final long startTime = System.currentTimeMillis();
 
   private boolean isRunning;
 
   public TrainingSession(String sessionId, FeedForwardNetwork network, int totalEpochs, int totalBatches,
       String modelName, String trainingData) {
+    
     this.sessionId = sessionId;
     this.network = network;
     this.totalEpochs = totalEpochs;
@@ -44,17 +53,20 @@ public class TrainingSession {
   /**
    * Save the trained model to disk with timestamp.
    * 
-   * @param modelName Name of the model to save
-   * @throws IOException If file operations fail
+   * @param modelId
    */
-  public void Save(String modelName) throws IOException {
-    String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd--HH-mm-ss"));
-    Path dir = Paths.get("savedModels", modelName);
-    Files.createDirectories(dir);
-    Gson gson = new Gson();
-    String json = gson.toJson(this);
-    String filename = dir.resolve(modelName + "-" + timestamp + ".json").toString();
-    Files.write(Paths.get(filename), json.getBytes());
+  public void Save(String modelId){
+    if(this.isRunning) return;
+    Result result = new Result();
+    result.setModelId(modelId);
+    result.setSessionId(modelId);
+    result.setFinalAccuracy(this.accuracy);
+    result.setTrainingTime(System.currentTimeMillis() - startTime);
+    result.setEpochs(this.totalEpochs);
+    result.setTotalBatches(this.totalBatches);
+    result.setCompletedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+    result.setFinalStatus(status);
+    repo.save(result);
   }
 
   /**

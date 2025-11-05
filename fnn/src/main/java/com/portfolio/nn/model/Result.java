@@ -1,5 +1,9 @@
 package com.portfolio.nn.model;
 
+import java.util.UUID;
+
+import com.portfolio.nn.constants.SessionStatus;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -22,9 +26,6 @@ public class Result {
   @Column(name = "final_accuracy")
   private double finalAccuracy;
 
-  @Column(name = "final_loss")
-  private double finalLoss;
-
   @Column(name = "training_time_ms")
   private long trainingTime; // in milliseconds
 
@@ -33,6 +34,12 @@ public class Result {
 
   @Column(name = "completed_at")
   private String completedAt; // ISO 8601 format
+
+  private SessionStatus finalStatus;
+
+  public Result() {
+    this.resultId = UUID.randomUUID().toString();
+  }
 
   // Getters and Setters
   public String getId() {
@@ -51,10 +58,6 @@ public class Result {
     return finalAccuracy;
   }
 
-  public double getFinalLoss() {
-    return finalLoss;
-  }
-
   public long getTrainingTime() {
     return trainingTime;
   }
@@ -62,12 +65,17 @@ public class Result {
   public int getEpochs() {
     return epochs;
   }
-  public int getBatchSize(){
+
+  public int getBatchSize() {
     return batches;
   }
 
   public String getCompletedAt() {
     return completedAt;
+  }
+
+  public SessionStatus getFinalSessionStatus() {
+    return finalStatus;
   }
 
   public void setModelId(String modelId) {
@@ -82,10 +90,6 @@ public class Result {
     this.finalAccuracy = finalAccuracy;
   }
 
-  public void setFinalLoss(double finalLoss) {
-    this.finalLoss = finalLoss;
-  }
-
   public void setTrainingTime(long trainingTime) {
     this.trainingTime = trainingTime;
   }
@@ -94,12 +98,16 @@ public class Result {
     this.epochs = epochs;
   }
 
-  public void setTotalBatches(int batches){
+  public void setTotalBatches(int batches) {
     this.batches = batches;
   }
 
   public void setCompletedAt(String completedAt) {
     this.completedAt = completedAt;
+  }
+
+  public void setFinalStatus(SessionStatus status) {
+    this.finalStatus = status;
   }
 
 }
