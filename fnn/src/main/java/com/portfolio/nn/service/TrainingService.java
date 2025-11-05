@@ -17,6 +17,7 @@ import com.portfolio.nn.model.TrainingSession;
 import com.portfolio.nn.model.modelModel;
 import com.portfolio.nn.network.FeedForwardNetwork;
 import com.portfolio.nn.repo.ModelRepo;
+import com.portfolio.nn.repo.ResultRepo;
 import com.portfolio.nn.util.DataUtils;
 
 @Service
@@ -24,6 +25,10 @@ public class TrainingService {
 
   @Autowired
   private ModelRepo modelRepo;
+
+  @Autowired
+  private ResultRepo resultRepo;
+
   private final Map<String, TrainingSession> sessions = new ConcurrentHashMap<>();
 
   private final Gson gson = new Gson();
@@ -78,14 +83,14 @@ public class TrainingService {
         saveable.setBiases(gson.toJson(network.getBiases()));
         saveable.setWeights(gson.toJson(network.getWeights()));
         repo.save(saveable);
-        session.Save(sessionId);
+        session.Save(sessionId, resultRepo);
 
       } catch (IOException e) {
         session.setStatus(SessionStatus.FAILED);
         session.setRunning(false);
         // session.Save(session.getModelName());
         repo.save(saveable);
-        session.Save(sessionId);
+        session.Save(sessionId, resultRepo);
 
       }
     }).start();
@@ -97,7 +102,7 @@ public class TrainingService {
     return sessions.get(sessionId);
   }
 
-  //TODO Saves both Results and model
+  // TODO Saves both Results and model
   public boolean stopSession(String sessionId) {
     TrainingSession session = getSession(sessionId);
     if (session != null && session.isRunning()) {

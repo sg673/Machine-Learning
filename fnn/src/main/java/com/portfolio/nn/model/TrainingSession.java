@@ -7,17 +7,12 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.google.gson.Gson;
 import com.portfolio.nn.constants.SessionStatus;
 import com.portfolio.nn.network.FeedForwardNetwork;
 import com.portfolio.nn.repo.ResultRepo;
 
 public class TrainingSession {
-
-  @Autowired
-  private ResultRepo repo;
 
   private final String sessionId;
   private SessionStatus status;
@@ -55,7 +50,7 @@ public class TrainingSession {
    * 
    * @param modelId
    */
-  public void Save(String modelId){
+  public void Save(String modelId, ResultRepo repo){
     if(this.isRunning) return;
     Result result = new Result();
     result.setModelId(modelId);
