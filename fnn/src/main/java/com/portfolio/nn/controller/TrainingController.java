@@ -39,6 +39,11 @@ public class TrainingController {
     }
   }
 
+  @PostMapping(value = "/training/start/{modelId}")
+  public ResponseEntity<Object> postReTrain(@PathVariable("modelId") String modelId){
+    return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+  }
+
   @GetMapping("/training/{id}/status")
   public ResponseEntity<Object> getStatusById(@PathVariable("id") String sessionId) {
     TrainingSession session = trainingService.getSession(sessionId);
