@@ -95,16 +95,12 @@ public class TrainingService {
     return sessions.get(sessionId);
   }
 
+  
   public boolean stopSession(String sessionId) {
     TrainingSession session = getSession(sessionId);
     if (session != null && session.isRunning()) {
       session.setRunning(false);
       session.setStatus(SessionStatus.STOPPED);
-      try {
-        session.Save(session.getModelName());
-      } catch (IOException ex) {
-        System.out.println("Could not save model:" + session.getModelName() + "\n" + ex);
-      }
       return true;
     }
     return false;
