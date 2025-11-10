@@ -1,5 +1,6 @@
 package com.portfolio.nn.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,10 @@ public class ResultService {
 
   public Optional<Result> getResultById(String id){
     return repo.findById(id);
+  }
+
+  public List<Result> getAllResults(){
+    return repo.findAll();
   }
 
 }

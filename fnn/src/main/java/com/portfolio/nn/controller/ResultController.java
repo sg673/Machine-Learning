@@ -1,6 +1,6 @@
 package com.portfolio.nn.controller;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +25,15 @@ public class ResultController {
 
   @GetMapping("/results")
   public ResponseEntity<Object> getResults() {
-    return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-        "message", "List of results"));
+    List<Result> results = resultService.getAllResults();
+    return ResponseEntity.ok().body(results);
   }
 
   @GetMapping("/results/{id}")
   public ResponseEntity<Object> getResultById(@PathVariable("id") String resultId) {
 
     Optional<Result> result = resultService.getResultById(resultId);
-    if(result.isPresent()){
+    if (result.isPresent()) {
       return ResponseEntity.status(HttpStatus.OK).body(result.get());
     }
     return ResponseEntity.notFound().build();
