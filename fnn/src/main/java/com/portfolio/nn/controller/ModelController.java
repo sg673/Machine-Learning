@@ -45,8 +45,7 @@ public class ModelController {
     if (model.isPresent()) {
       return ResponseEntity.status(HttpStatus.OK).body(model.get());
     } else {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-          "Model with id " + id + " not found");
+      return ResponseEntity.notFound().build();
     }
   }
 
