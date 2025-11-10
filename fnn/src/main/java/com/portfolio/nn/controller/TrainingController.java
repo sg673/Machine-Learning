@@ -39,6 +39,7 @@ public class TrainingController {
     }
   }
 
+  // Retraining models that already exist
   @PostMapping(value = "/training/start/{modelId}")
   public ResponseEntity<Object> postReTrain(@PathVariable("modelId") String modelId){
     return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
