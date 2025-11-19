@@ -138,13 +138,13 @@ def main():
   print("Images shape:", test_images.shape)
   print("Labels shape:", test_labels.shape)
 
-  
+  print("Processing Training Data")
   train_images_aug, train_labels_aug = apply_random_transforms(train_images, train_labels)
   test_images_aug, test_labels_aug = apply_random_transforms(test_images, test_labels)
 
   savePath = mod_path / "../../../resources/archive/processed/mnist/"
-  save_images_to_binary(train_images_aug, train_labels_aug, savePath)
-  save_images_to_binary(test_images_aug, test_labels_aug, savePath)
+  save_images_to_binary(train_images_aug, train_labels_aug,  os.path.join(savePath, "mnist-train"))
+  save_images_to_binary(test_images_aug, test_labels_aug,  os.path.join(savePath, "mnist-test"))
 
 
 
