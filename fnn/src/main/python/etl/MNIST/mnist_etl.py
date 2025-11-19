@@ -1,7 +1,6 @@
 import os
 import struct
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.ndimage import rotate, shift, zoom
 from pathlib import Path
 
@@ -84,10 +83,44 @@ def apply_random_transforms(images, labels):
         np.array(transformed_labels)
     )
 
+def save_images_to_binary(images, labels, filename):
+    """
+    Save modified images and labels back to binary files in MNIST format.
+    
+    Args:
+        images: numpy array of shape (n_samples, 784) containing flattened 28x28 images
+        labels: numpy array of shape (n_samples,) containing labels
+        filename: base filename (without extension) for the output files
+    """
+    # Reshape images back to 28x28 if they're flattened
+    if len(images.shape) == 2 and images.shape[1] == 784:
+        images = images.reshape(-1, 28, 28)
+    
+    # Save images
+    with open(f"{filename}-images.idx3-ubyte", "wb") as f:
+        # Write magic number for images (2051)
+        f.write(struct.pack(">I", 2051))
+        # Write number of images
+        f.write(struct.pack(">I", len(images)))
+        # Write rows and columns
+        f.write(struct.pack(">I", 28))
+        f.write(struct.pack(">I", 28))
+        # Write image data
+        f.write(images.astype(np.uint8).tobytes())
+    
+    # Save labels
+    with open(f"{filename}-labels.idx1-ubyte", "wb") as f:
+        # Write magic number for labels (2049)
+        f.write(struct.pack(">I", 2049))
+        # Write number of labels
+        f.write(struct.pack(">I", len(labels)))
+        # Write label data
+        f.write(labels.astype(np.uint8).tobytes())
+
+
 def main():
   mod_path = Path(__file__).parent
-  archive = (mod_path / "../../../resources/archive/").resolve()
-  #archive = "../../../resources/archive/"
+  archive = (mod_path / "../../../resources/archive/raw/mnist/").resolve()
   train_images_file = os.path.join(archive, "train-images.idx3-ubyte")
   train_labels_file = os.path.join(archive, "train-labels.idx1-ubyte")
   test_images_file = os.path.join(archive, "t10k-images.idx3-ubyte")
@@ -108,6 +141,10 @@ def main():
   
   train_images_aug, train_labels_aug = apply_random_transforms(train_images, train_labels)
   test_images_aug, test_labels_aug = apply_random_transforms(test_images, test_labels)
+
+  savePath = mod_path / "../../../resources/archive/processed/mnist/"
+  save_images_to_binary(train_images_aug, train_labels_aug, savePath)
+  save_images_to_binary(test_images_aug, test_labels_aug, savePath)
 
 
 
