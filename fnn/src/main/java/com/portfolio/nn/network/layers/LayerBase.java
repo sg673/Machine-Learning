@@ -21,4 +21,12 @@ public abstract class LayerBase {
     this.prev = Optional.empty();
     this.next = Optional.empty();
   }
+
+  public void setPrev(LayerBase layer){
+    this.prev = Optional.of(layer);
+  }
+
+  public void setNext(LayerBase layer){
+    this.next = Optional.of(layer);
+  }
 }
