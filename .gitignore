@@ -45,3 +45,4 @@ fnn/src/main/resources/archive/
 ### Saved Models ###
 savedModels/
 
+*.ipynb
