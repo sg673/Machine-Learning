@@ -14,6 +14,7 @@ public class PoolingLayer extends LayerBase {
   public PoolingLayer(int inputWidth, int inputHeight, int inputDepth,
       int poolSize, int stride, PoolingType poolingType) {
 
+    super();
     this.inputWidth = inputWidth;
     this.inputHeight = inputHeight;
     this.inputDepth = inputDepth;

@@ -11,7 +11,8 @@ public class ConvolutionalLayer extends LayerBase {
   public ConvolutionalLayer(int inputWidth, int inputHeight, int inputDepth,
       int filterCount, int filterSize, int stride, int padding,
       ActivationFunction activationFunction) {
-
+    
+    super();
     this.inputWidth = inputWidth;
     this.inputHeight = inputHeight;
     this.inputDepth = inputDepth;
