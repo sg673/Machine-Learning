@@ -6,8 +6,8 @@ import com.portfolio.nn.network.activation.ActivationFunction;
 
 public abstract class LayerBase {
   ActivationFunction activFunc;
-  Optional<LayerBase> prev;
-  Optional<LayerBase> next;
+  public Optional<LayerBase> prev;
+  public Optional<LayerBase> next;
   double[] biases;
   int size;
 
@@ -29,4 +29,6 @@ public abstract class LayerBase {
   public void setNext(LayerBase layer){
     this.next = Optional.of(layer);
   }
+
+  public abstract double[] forward(double[][][] input);
 }
