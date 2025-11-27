@@ -39,7 +39,9 @@ public class ConvolutionalLayer extends LayerBase {
     }
   }
 
+  @Override
   public double[] forward(double[][][] input) {
+    this.lastInput = input;
     double[] output = new double[size];
     int outputIndex = 0;
 
@@ -51,6 +53,7 @@ public class ConvolutionalLayer extends LayerBase {
         }
       }
     }
+    this.lastOutput = output;
     return output;
   }
 
@@ -70,6 +73,39 @@ public class ConvolutionalLayer extends LayerBase {
       }
     }
     return sum;
+  }
+
+  @Override
+  public double[] backward(double[] gradient, double learningRate){
+    double[] inputGradient = new double[inputWidth * inputHeight * inputDepth];
+    int gradIndex = 0;
+
+    for (int f = 0; f < filters.length; f++){
+      for (int y=0; y < outputHeight;y++){
+        for (int x = 0; x < outputWidth;x++){
+          double delta = gradient[gradIndex++];
+          biases[f] -= learningRate * delta;
+
+          //Updates filter weights
+          for (int fy = 0; fy < filterSize; fy++) {
+            for (int fx = 0; fx < filterSize; fx++) {
+              int inputY = y * stride + fy - padding;
+              int inputX = x * stride + fx - padding;
+
+              if (inputY >= 0 && inputY < inputHeight && inputX >= 0 && inputX < inputWidth) {
+                for (int c = 0; c < inputDepth; c++) {
+                  //Updating Gradient may not be needed
+                  // int inputIndex = c * inputWidth * inputHeight + inputY * inputWidth + inputX;
+                  // inputGradient[inputIndex] += filters[f][fy][fx] * delta;
+                  filters[f][fy][fx] -= learningRate * lastInput[c][inputY][inputX] * delta;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return inputGradient;
   }
 
 }

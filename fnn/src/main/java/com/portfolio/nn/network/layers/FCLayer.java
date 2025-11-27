@@ -6,8 +6,8 @@ public class FCLayer extends LayerBase {
   private double[][] weights;
   private int inputSize;
 
-  public FCLayer(int inputWidth, int inputHeight, int inputDepth, int outputSize, 
-                 ActivationFunction activationFunction) {
+  public FCLayer(int inputWidth, int inputHeight, int inputDepth, int outputSize,
+      ActivationFunction activationFunction) {
     super();
     this.inputWidth = inputWidth;
     this.inputHeight = inputHeight;
@@ -15,7 +15,7 @@ public class FCLayer extends LayerBase {
     this.inputSize = inputWidth * inputHeight * inputDepth;
     this.size = outputSize;
     this.activFunc = activationFunction;
-    
+
     this.weights = new double[outputSize][inputSize];
     this.biases = new double[outputSize];
     for (int i = 0; i < outputSize; i++) {
@@ -26,11 +26,13 @@ public class FCLayer extends LayerBase {
     }
   }
 
+  @Override
   public double[] forward(double[][][] input) {
+    this.lastInput = input;
     // Inputs need to be flattened so they're not 3d
     double[] flatInput = flatten(input);
     double[] output = new double[size];
-    
+
     for (int i = 0; i < size; i++) {
       double sum = biases[i];
       for (int j = 0; j < inputSize; j++) {
@@ -38,6 +40,7 @@ public class FCLayer extends LayerBase {
       }
       output[i] = activFunc.activate(sum);
     }
+    this.lastOutput = output;
     return output;
   }
 
@@ -52,6 +55,23 @@ public class FCLayer extends LayerBase {
       }
     }
     return flat;
+  }
+
+  @Override
+  public double[] backward(double[] gradient, double learningRate) {
+    double[] flatInput = flatten(lastInput);
+    double[] inputGradient = new double[inputSize];
+
+    for (int i = 0; i < size; i++) {
+      double delta = gradient[i] * activFunc.derivative(lastOutput[i]);
+      biases[i] -= learningRate * delta;
+
+      for (int j = 0; j < inputSize; j++) {
+        weights[i][j] -= learningRate * delta * flatInput[j];
+        inputGradient[j] += weights[i][j] * delta;
+      }
+    }
+    return inputGradient;
   }
 
 }

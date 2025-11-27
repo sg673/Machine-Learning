@@ -31,4 +31,8 @@ public abstract class LayerBase {
   }
 
   public abstract double[] forward(double[][][] input);
+  public abstract double[] backward(double[] gradient, double learningRate);
+
+  protected double[][][] lastInput;
+  protected double[] lastOutput;
 }
