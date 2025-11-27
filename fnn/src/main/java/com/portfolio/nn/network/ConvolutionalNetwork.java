@@ -60,7 +60,15 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   @Override
   public double evaluate(double[][] testX, double[][] testY) {
-    return 0;
+    int correct = 0;
+    for(int i = 0; i < testX.length;i++){
+      int prediction = predict(testX[i]);
+      int actual = DataUtils.getMaxIndex(testY[i]);
+      if(prediction == actual){
+        correct++;
+      }
+    }
+    return (double) correct / testX.length;
   }
 
   private double[][][] convertTo3D(double[] input) {
