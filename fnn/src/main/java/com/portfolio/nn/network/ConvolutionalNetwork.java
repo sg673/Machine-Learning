@@ -39,7 +39,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
   @Override
   public double[] forward(double[] input) {
     if (head.isEmpty()) {
-      return new double[0];
+      throw new Error("No layers defined");
     }
     double[][][] input3D = convertTo3D(input);
     LayerBase current = head.get();
