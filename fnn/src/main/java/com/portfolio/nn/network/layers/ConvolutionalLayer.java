@@ -94,9 +94,8 @@ public class ConvolutionalLayer extends LayerBase {
 
               if (inputY >= 0 && inputY < inputHeight && inputX >= 0 && inputX < inputWidth) {
                 for (int c = 0; c < inputDepth; c++) {
-                  //Updating Gradient may not be needed
-                  // int inputIndex = c * inputWidth * inputHeight + inputY * inputWidth + inputX;
-                  // inputGradient[inputIndex] += filters[f][fy][fx] * delta;
+                  int inputIndex = c * inputWidth * inputHeight + inputY * inputWidth + inputX;
+                  inputGradient[inputIndex] += filters[f][fy][fx] * delta;
                   filters[f][fy][fx] -= learningRate * lastInput[c][inputY][inputX] * delta;
                 }
               }
