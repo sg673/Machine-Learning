@@ -11,9 +11,9 @@ public abstract class LayerBase {
   double[] biases;
   int size;
 
-  int inputWidth;
-  int inputHeight;
-  int inputDepth;
+  public int inputWidth;
+  public int inputHeight;
+  public int inputDepth;
   int outputWidth;
   int outputHeight;
   
