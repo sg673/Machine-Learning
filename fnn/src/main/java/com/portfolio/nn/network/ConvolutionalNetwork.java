@@ -3,6 +3,8 @@ package com.portfolio.nn.network;
 import java.util.Optional;
 
 import com.portfolio.nn.network.layers.LayerBase;
+import com.portfolio.nn.network.loss.CategoricalCrossEntropy;
+import com.portfolio.nn.network.loss.LossFunction;
 import com.portfolio.nn.util.DataUtils;
 
 public class ConvolutionalNetwork implements NeuralNetworkBase {
@@ -11,8 +13,15 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
   // Should usually be an input layer
   private Optional<LayerBase> head;
 
+  private LossFunction lossFunction;
+
   public ConvolutionalNetwork() {
     this.head = Optional.empty();
+    this.lossFunction = new CategoricalCrossEntropy();
+  }
+
+  public void setLossFunction(LossFunction lossFunction){
+    this.lossFunction = lossFunction;
   }
 
   public boolean addLayer(LayerBase layer) {
@@ -44,7 +53,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
     double[][][] input3D = convertTo3D(input);
     LayerBase current = head.get();
     double[] output = current.forward(input3D);
-    while (current.next.isPresent()){
+    while (current.next.isPresent()) {
       current = current.next.get();
       input3D = convertTo3D(output);
       output = current.forward(input3D);
@@ -55,16 +64,32 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   @Override
   public void train(double[][] x, double[][] y, double learningRate, int epochs) {
+    for (int epoch = 0; epoch < epochs; epoch++) {
+      for (int i = 0; i < x.length; i++) {
+        double[] output = forward(x[i]);
+        double[] gradient = lossFunction.calculateGradient(output, y[i]);
 
+        if (head.isPresent()) {
+          LayerBase current = head.get();
+          while (current.next.isPresent()) {
+            current = current.next.get();
+          }
+          while (current != null) {
+            gradient = current.backward(gradient, learningRate);
+            current = current.prev.orElse(null);
+          }
+        }
+      }
+    }
   }
 
   @Override
   public double evaluate(double[][] testX, double[][] testY) {
     int correct = 0;
-    for(int i = 0; i < testX.length;i++){
+    for (int i = 0; i < testX.length; i++) {
       int prediction = predict(testX[i]);
       int actual = DataUtils.getMaxIndex(testY[i]);
-      if(prediction == actual){
+      if (prediction == actual) {
         correct++;
       }
     }
