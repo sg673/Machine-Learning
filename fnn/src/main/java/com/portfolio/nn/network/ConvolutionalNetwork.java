@@ -26,6 +26,10 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   public ConvolutionalNetwork addLayer(LayerBase layer) {
     if (head.isEmpty()) {
+      layer.inputDepth = 1;
+      layer.inputHeight = 28;
+      layer.inputWidth = 28;
+      layer.updateOutputShape();
       head = Optional.of(layer);
     } else {
       LayerBase current = head.get();
@@ -34,6 +38,12 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       }
       current.setNext(layer);
       layer.setPrev(current);
+
+      layer.inputWidth = current.outputWidth;
+      layer.inputHeight = current.outputHeight;
+      layer.inputDepth = current.getOutputDepth();
+
+      layer.updateOutputShape();
     }
     return this;
   }

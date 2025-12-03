@@ -11,18 +11,27 @@ public class PoolingLayer extends LayerBase {
   private int stride;
   private PoolingType poolingType;
 
-  public PoolingLayer(int inputWidth, int inputHeight, int inputDepth,
+  public PoolingLayer(
       int poolSize, int stride, PoolingType poolingType) {
 
     super();
-    this.inputWidth = inputWidth;
-    this.inputHeight = inputHeight;
-    this.inputDepth = inputDepth;
     this.poolSize = poolSize;
     this.stride = stride;
     this.poolingType = poolingType;
 
     // Calculate output dimensions
+    // this.outputWidth = (inputWidth - poolSize) / stride + 1;
+    // this.outputHeight = (inputHeight - poolSize) / stride + 1;
+    // this.size = outputWidth * outputHeight * inputDepth;
+  }
+
+  @Override
+  public int getOutputDepth() {
+    return inputDepth;
+  }
+
+  @Override
+  public void updateOutputShape() {
     this.outputWidth = (inputWidth - poolSize) / stride + 1;
     this.outputHeight = (inputHeight - poolSize) / stride + 1;
     this.size = outputWidth * outputHeight * inputDepth;
@@ -89,9 +98,9 @@ public class PoolingLayer extends LayerBase {
             inputGradient[c * inputWidth * inputHeight + maxY * inputWidth + maxX] += grad;
           } else {
             double avgGrad = grad / (poolSize * poolSize);
-            for (int py = 0; py < poolSize;py++){
-              for (int px = 0; px < poolSize;px++){
-                int idx = c * inputWidth * inputHeight + (y*stride+py) * inputWidth + (x*stride+px);
+            for (int py = 0; py < poolSize; py++) {
+              for (int px = 0; px < poolSize; px++) {
+                int idx = c * inputWidth * inputHeight + (y * stride + py) * inputWidth + (x * stride + px);
                 inputGradient[idx] += avgGrad;
               }
             }

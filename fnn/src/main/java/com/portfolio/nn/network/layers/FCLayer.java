@@ -6,14 +6,15 @@ public class FCLayer extends LayerBase {
   private double[][] weights;
   private int inputSize;
 
-  public FCLayer(int inputWidth, int inputHeight, int inputDepth, int outputSize,
+  public FCLayer(int outputSize,
       ActivationFunction activationFunction) {
     super();
-    this.inputWidth = inputWidth;
-    this.inputHeight = inputHeight;
-    this.inputDepth = inputDepth;
     this.inputSize = inputWidth * inputHeight * inputDepth;
+
+    //TODO Disambiguate the output shape
     this.size = outputSize;
+    this.outputHeight = outputSize;
+    this.outputWidth = 1;
     this.activFunc = activationFunction;
 
     this.weights = new double[outputSize][inputSize];
@@ -24,6 +25,25 @@ public class FCLayer extends LayerBase {
       }
       biases[i] = 0.0;
     }
+  }
+
+  @Override
+  public int getOutputDepth() {
+    return 1;
+  }
+
+  @Override
+  public void updateOutputShape() {
+    this.inputSize = inputWidth * inputHeight * inputDepth;
+    this.weights = new double[size][inputSize];
+    this.biases = new double[size];
+    for (int i = 0; i < size; i++) {
+      for (int j = 0; j < inputSize; j++) {
+        weights[i][j] = Math.random() * 0.1 - 0.05;
+      }
+      biases[i] = 0.0;
+    }
+    return;
   }
 
   @Override

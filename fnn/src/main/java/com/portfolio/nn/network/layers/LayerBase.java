@@ -14,8 +14,8 @@ public abstract class LayerBase {
   public int inputWidth;
   public int inputHeight;
   public int inputDepth;
-  int outputWidth;
-  int outputHeight;
+  public int outputWidth;
+  public int outputHeight;
   
   public LayerBase(){
     this.prev = Optional.empty();
@@ -32,6 +32,9 @@ public abstract class LayerBase {
 
   public abstract double[] forward(double[][][] input);
   public abstract double[] backward(double[] gradient, double learningRate);
+  public abstract int getOutputDepth();
+
+  public abstract void updateOutputShape();
 
   protected double[][][] lastInput;
   protected double[] lastOutput;

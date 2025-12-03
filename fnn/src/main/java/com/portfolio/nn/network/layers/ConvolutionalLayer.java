@@ -8,23 +8,20 @@ public class ConvolutionalLayer extends LayerBase {
   private int stride;
   private int padding;
 
-  public ConvolutionalLayer(int inputWidth, int inputHeight, int inputDepth,
+  public ConvolutionalLayer(
       int filterCount, int filterSize, int stride, int padding,
       ActivationFunction activationFunction) {
-    
+
     super();
-    this.inputWidth = inputWidth;
-    this.inputHeight = inputHeight;
-    this.inputDepth = inputDepth;
     this.filterSize = filterSize;
     this.stride = stride;
     this.padding = padding;
     this.activFunc = activationFunction;
 
     // Calculate output dimensions
-    this.outputWidth = (inputWidth - filterSize + 2 * padding) / stride + 1;
-    this.outputHeight = (inputHeight - filterSize + 2 * padding) / stride + 1;
-    this.size = outputWidth * outputHeight * filterCount;
+    // this.outputWidth = (inputWidth - filterSize + 2 * padding) / stride + 1;
+    // this.outputHeight = (inputHeight - filterSize + 2 * padding) / stride + 1;
+    // this.size = outputWidth * outputHeight * filterCount;
 
     // Initialize filters
     this.filters = new double[filterCount][filterSize][filterSize];
@@ -37,6 +34,18 @@ public class ConvolutionalLayer extends LayerBase {
       }
       biases[f] = 0.0;
     }
+  }
+
+  @Override
+  public int getOutputDepth() {
+    return filters.length;
+  }
+
+  @Override
+  public void updateOutputShape() {
+    this.outputWidth = (inputWidth - filterSize + 2 * padding) / stride + 1;
+    this.outputHeight = (inputHeight - filterSize + 2 * padding) / stride + 1;
+    this.size = outputWidth * outputHeight * getOutputDepth();
   }
 
   @Override
@@ -76,17 +85,17 @@ public class ConvolutionalLayer extends LayerBase {
   }
 
   @Override
-  public double[] backward(double[] gradient, double learningRate){
+  public double[] backward(double[] gradient, double learningRate) {
     double[] inputGradient = new double[inputWidth * inputHeight * inputDepth];
     int gradIndex = 0;
 
-    for (int f = 0; f < filters.length; f++){
-      for (int y=0; y < outputHeight;y++){
-        for (int x = 0; x < outputWidth;x++){
+    for (int f = 0; f < filters.length; f++) {
+      for (int y = 0; y < outputHeight; y++) {
+        for (int x = 0; x < outputWidth; x++) {
           double delta = gradient[gradIndex++];
           biases[f] -= learningRate * delta;
 
-          //Updates filter weights
+          // Updates filter weights
           for (int fy = 0; fy < filterSize; fy++) {
             for (int fx = 0; fx < filterSize; fx++) {
               int inputY = y * stride + fy - padding;
