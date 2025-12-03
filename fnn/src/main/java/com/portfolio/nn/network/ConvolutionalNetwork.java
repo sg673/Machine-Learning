@@ -20,14 +20,13 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
     this.lossFunction = new CategoricalCrossEntropy();
   }
 
-  public void setLossFunction(LossFunction lossFunction){
+  public void setLossFunction(LossFunction lossFunction) {
     this.lossFunction = lossFunction;
   }
 
-  public boolean addLayer(LayerBase layer) {
+  public ConvolutionalNetwork addLayer(LayerBase layer) {
     if (head.isEmpty()) {
       head = Optional.of(layer);
-      return true;
     } else {
       LayerBase current = head.get();
       while (current.next.isPresent()) {
@@ -35,8 +34,8 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       }
       current.setNext(layer);
       layer.setPrev(current);
-      return true;
     }
+    return this;
   }
 
   @Override
@@ -50,12 +49,12 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
     if (head.isEmpty()) {
       throw new Error("No layers defined");
     }
-    double[][][] input3D = convertTo3D(input);
     LayerBase current = head.get();
+    double[][][] input3D = convertTo3D(input,current.inputDepth, current.inputHeight, current.inputWidth);
     double[] output = current.forward(input3D);
     while (current.next.isPresent()) {
       current = current.next.get();
-      input3D = convertTo3D(output);
+      input3D = convertTo3D(output,current.inputDepth, current.inputHeight, current.inputWidth);
       output = current.forward(input3D);
     }
     return output;
@@ -66,6 +65,9 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
   public void train(double[][] x, double[][] y, double learningRate, int epochs) {
     for (int epoch = 0; epoch < epochs; epoch++) {
       for (int i = 0; i < x.length; i++) {
+        if( i % 100 == 0){
+          System.out.print("\r Epoch:"+epoch+" i:"+i);
+        }
         double[] output = forward(x[i]);
         double[] gradient = lossFunction.calculateGradient(output, y[i]);
 
@@ -96,15 +98,14 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
     return (double) correct / testX.length;
   }
 
-  private double[][][] convertTo3D(double[] input) {
-    // For MNIST: 784 -> 28x28x1
-    int size = (int) Math.sqrt(input.length);
-    double[][][] result = new double[1][size][size];
+  private double[][][] convertTo3D(double[] input, int depth, int height, int width) {
+    double[][][] result = new double[depth][height][width];
 
-    for (int i = 0; i < input.length; i++) {
-      int row = i / size;
-      int col = i % size;
-      result[0][row][col] = input[i];
+    for (int i = 0; i < input.length && i < depth * height * width; i++) {
+      int d = i / (height * width);
+      int h = (i % (height * width)) / width;
+      int w = i % width;
+      result[d][h][w] = input[i];
     }
 
     return result;
