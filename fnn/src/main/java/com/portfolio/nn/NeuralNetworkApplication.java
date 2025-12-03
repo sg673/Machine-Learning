@@ -20,7 +20,7 @@ import com.portfolio.nn.util.DataUtils;
 @SpringBootApplication
 public class NeuralNetworkApplication {
   public static void main(String[] args) {
-    //SpringApplication.run(NeuralNetworkApplication.class, args);
+    // SpringApplication.run(NeuralNetworkApplication.class, args);
 
     // runMNISTDemo();
     runCNNDemo();
@@ -60,38 +60,37 @@ public class NeuralNetworkApplication {
 
       ConvolutionalNetwork cnn = new ConvolutionalNetwork();
 
-      //28x28x1 -> 24x24x32 -> 12x12x32 -> 8x8x64 -> 4x4x64 -> 128 -> 10
+      // 28x28x1 -> 24x24x32 -> 12x12x32 -> 8x8x64 -> 4x4x64 -> 128 -> 10
       // cnn.addLayer(
-      //   new ConvolutionalLayer(28,28,1,32,5,1,0,ActivationFunction.RELU)
+      // new ConvolutionalLayer(28,28,1,32,5,1,0,ActivationFunction.RELU)
       // ).addLayer(
-      //   new PoolingLayer(24,24,32,2,2,PoolingLayer.PoolingType.MAX)
+      // new PoolingLayer(24,24,32,2,2,PoolingLayer.PoolingType.MAX)
       // ).addLayer(
-      //   new ConvolutionalLayer(12,12,32,64,5,1,0,ActivationFunction.RELU)
+      // new ConvolutionalLayer(12,12,32,64,5,1,0,ActivationFunction.RELU)
       // ).addLayer(
-      //   new PoolingLayer(8,8,64,2,2,PoolingLayer.PoolingType.MAX)
+      // new PoolingLayer(8,8,64,2,2,PoolingLayer.PoolingType.MAX)
       // ).addLayer(
-      //   new FCLayer(4,4,64,128, ActivationFunction.RELU)
+      // new FCLayer(4,4,64,128, ActivationFunction.RELU)
       // ).addLayer(
-      //   new FCLayer(1,1,128,10,ActivationFunction.SIGMOID)
+      // new FCLayer(1,1,128,10,ActivationFunction.SIGMOID)
       // );
 
       cnn.addLayer(
-        new ConvolutionalLayer(28,28,1,32,3,1,0,ActivationFunction.RELU)
-      ).addLayer(
-        new ConvolutionalLayer(28,28,1,32,3,1,0,ActivationFunction.RELU)
-      ).addLayer(
-        new PoolingLayer(28, 28, 1, 2, 1, PoolingType.MAX)
-      ).addLayer(
-        new ConvolutionalLayer(14,14,1,64,3,1,0,ActivationFunction.RELU)
-      ).addLayer(
-        new PoolingLayer(14, 14, 1, 2, 1, PoolingType.MAX)
-      ).addLayer(
-        new FCLayer(7, 7, 1, 128, ActivationFunction.RELU)
-      ).addLayer(
-        new FCLayer(128, 1, 1, 10, ActivationFunction.SIGMOID)
-      );
-      
-      cnn.train(trainData.getImages(),DataUtils.oneHotEncode(trainData.getLabels()),0.001,1);
+          new ConvolutionalLayer(32, 3, 1, 0, ActivationFunction.RELU))
+          .addLayer(
+              new ConvolutionalLayer(32, 3, 1, 0, ActivationFunction.RELU))
+          .addLayer(
+              new PoolingLayer(2, 1, PoolingType.MAX))
+          .addLayer(
+              new ConvolutionalLayer(64, 3, 1, 0, ActivationFunction.RELU))
+          .addLayer(
+              new PoolingLayer(2, 1, PoolingType.MAX))
+          .addLayer(
+              new FCLayer(128, ActivationFunction.RELU))
+          .addLayer(
+              new FCLayer(10, ActivationFunction.SIGMOID));
+
+      cnn.train(trainData.getImages(), DataUtils.oneHotEncode(trainData.getLabels()), 0.001, 1);
       double accuracy = cnn.evaluate(testData.getImages(), DataUtils.oneHotEncode(testData.getLabels()));
       System.out.println("Accuracy: " + (accuracy * 100) + "%");
 
