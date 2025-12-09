@@ -34,16 +34,15 @@ public class FCLayer extends LayerBase {
   @Override
   public double[][][] forward(double[][][] input) {
     this.lastInput = input;
-    // Inputs need to be flattened so they're not 3d
     double[] flatInput = flatten(input);
-    double[][][] output = new double[1][1][outputDepth];
+    double[][][] output = new double[outputDepth][1][1];
 
     for (int i = 0; i < outputDepth; i++) {
       double sum = biases[i];
       for (int j = 0; j < inputSize; j++) {
         sum += weights[i][j] * flatInput[j];
       }
-      output[0][0][i] = activFunc.activate(sum);
+      output[i][0][0] = activFunc.activate(sum);
     }
     this.lastOutput = output;
     return output;
@@ -68,12 +67,12 @@ public class FCLayer extends LayerBase {
     double[][][] inputGradient = new double[inputDepth][inputHeight][inputWidth];
 
     for (int i = 0; i < outputDepth; i++) {
-      double delta = gradient[0][0][i] * activFunc.derivative(lastOutput[0][0][i]);
+      double delta = gradient[i][0][0] * activFunc.derivative(lastOutput[i][0][0]);
       biases[i] -= learningRate * delta;
 
       for (int j = 0; j < inputSize; j++) {
         weights[i][j] -= learningRate * delta * flatInput[j];
-        // Convert flat index back to 3D coordinates
+
         int c = j / (inputWidth * inputHeight);
         int remaining = j % (inputWidth * inputHeight);
         int y = remaining / inputWidth;

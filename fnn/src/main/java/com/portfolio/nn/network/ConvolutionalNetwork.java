@@ -72,7 +72,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
           System.out.print("\r Epoch:" + epoch + " i:" + i);
         }
         double[] output = forward(x[i]);
-        double[][][] gradient = convertTo3D(lossFunction.calculateGradient(output, y[i]), 1, 1, output.length);
+        double[][][] gradient = convertTo3D(lossFunction.calculateGradient(output, y[i]), output.length, 1, 1);
 
         if (head.isPresent()) {
           LayerBase current = head.get();
