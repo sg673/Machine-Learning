@@ -9,33 +9,40 @@ public abstract class LayerBase {
   public Optional<LayerBase> prev;
   public Optional<LayerBase> next;
   double[] biases;
-  int size;
 
-  public int inputWidth;
-  public int inputHeight;
-  public int inputDepth;
-  public int outputWidth;
-  public int outputHeight;
-  
-  public LayerBase(){
+  protected int inputWidth, inputHeight, inputDepth;
+  protected int outputWidth, outputHeight, outputDepth;
+
+  public LayerBase() {
     this.prev = Optional.empty();
     this.next = Optional.empty();
   }
 
-  public void setPrev(LayerBase layer){
+  public void setPrev(LayerBase layer) {
     this.prev = Optional.of(layer);
   }
 
-  public void setNext(LayerBase layer){
+  public void setNext(LayerBase layer) {
     this.next = Optional.of(layer);
   }
 
-  public abstract double[] forward(double[][][] input);
-  public abstract double[] backward(double[] gradient, double learningRate);
-  public abstract int getOutputDepth();
+  public abstract double[][][] forward(double[][][] input);
 
-  public abstract void updateOutputShape();
+  public abstract double[][][] backward(double[][][] gradient, double learningRate);
+
+  public void setInputShape(int width, int height, int depth) {
+    this.inputWidth = width;
+    this.inputHeight = height;
+    this.inputDepth = depth;
+    computeOutputShape();
+  }
+
+  public int[] getOutputShape() {
+    return new int[] { outputWidth, outputHeight, outputDepth };
+  }
+
+  protected abstract void computeOutputShape();
 
   protected double[][][] lastInput;
-  protected double[] lastOutput;
+  protected double[][][] lastOutput;
 }

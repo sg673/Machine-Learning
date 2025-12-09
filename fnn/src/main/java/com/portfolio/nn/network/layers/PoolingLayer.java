@@ -26,27 +26,21 @@ public class PoolingLayer extends LayerBase {
   }
 
   @Override
-  public int getOutputDepth() {
-    return inputDepth;
-  }
-
-  @Override
-  public void updateOutputShape() {
+  protected void computeOutputShape(){
     this.outputWidth = (inputWidth - poolSize) / stride + 1;
     this.outputHeight = (inputHeight - poolSize) / stride + 1;
-    this.size = outputWidth * outputHeight * inputDepth;
+    this.outputDepth = inputDepth;
   }
 
   @Override
-  public double[] forward(double[][][] input) {
+  public double[][][] forward(double[][][] input) {
     this.lastInput = input;
-    double[] output = new double[size];
-    int outputIndex = 0;
+    double[][][] output = new double[outputDepth][outputHeight][outputWidth];
 
     for (int c = 0; c < inputDepth; c++) {
       for (int y = 0; y < outputHeight; y++) {
         for (int x = 0; x < outputWidth; x++) {
-          output[outputIndex++] = pool(input[c], x * stride, y * stride);
+          output[c][y][x] = pool(input[c], x * stride, y * stride);
         }
       }
     }
@@ -73,14 +67,13 @@ public class PoolingLayer extends LayerBase {
   }
 
   @Override
-  public double[] backward(double[] gradient, double learningRate) {
-    double[] inputGradient = new double[inputWidth * inputHeight * inputDepth];
-    int gradIndex = 0;
+  public double[][][] backward(double[][][] gradient, double learningRate) {
+    double[][][] inputGradient = new double[inputDepth][inputHeight][inputWidth];
 
     for (int c = 0; c < inputDepth; c++) {
       for (int y = 0; y < outputHeight; y++) {
         for (int x = 0; x < outputWidth; x++) {
-          double grad = gradient[gradIndex++];
+          double grad = gradient[c][y][x];
 
           if (poolingType == PoolingType.MAX) {
             int maxY = y * stride, maxX = x * stride;
@@ -95,13 +88,12 @@ public class PoolingLayer extends LayerBase {
                 }
               }
             }
-            inputGradient[c * inputWidth * inputHeight + maxY * inputWidth + maxX] += grad;
+            inputGradient[c][maxY][maxX] += grad;
           } else {
             double avgGrad = grad / (poolSize * poolSize);
             for (int py = 0; py < poolSize; py++) {
               for (int px = 0; px < poolSize; px++) {
-                int idx = c * inputWidth * inputHeight + (y * stride + py) * inputWidth + (x * stride + px);
-                inputGradient[idx] += avgGrad;
+                inputGradient[c][y * stride + py][x * stride + px] += avgGrad;
               }
             }
           }
