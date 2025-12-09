@@ -26,10 +26,8 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   public ConvolutionalNetwork addLayer(LayerBase layer) {
     if (head.isEmpty()) {
-      layer.inputDepth = 1;
-      layer.inputHeight = 28;
-      layer.inputWidth = 28;
-      layer.updateOutputShape();
+      // TODO replace temp MNIST input with generic
+      layer.setInputShape(28, 28, 1);
       head = Optional.of(layer);
     } else {
       LayerBase current = head.get();
@@ -39,11 +37,8 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       current.setNext(layer);
       layer.setPrev(current);
 
-      layer.inputWidth = current.outputWidth;
-      layer.inputHeight = current.outputHeight;
-      layer.inputDepth = current.getOutputDepth();
-
-      layer.updateOutputShape();
+      int[] outputShape = current.getOutputShape();
+      layer.setInputShape(outputShape[0], outputShape[1], outputShape[2]);
     }
     return this;
   }
@@ -60,26 +55,24 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       throw new Error("No layers defined");
     }
     LayerBase current = head.get();
-    double[][][] input3D = convertTo3D(input,current.inputDepth, current.inputHeight, current.inputWidth);
-    double[] output = current.forward(input3D);
-    while (current.next.isPresent()) {
-      current = current.next.get();
-      input3D = convertTo3D(output,current.inputDepth, current.inputHeight, current.inputWidth);
-      output = current.forward(input3D);
+    // TODO replace temp MNIST input with generic
+    double[][][] tensor = convertTo3D(input, 1, 28, 28);
+    while (current != null) {
+      tensor = current.forward(tensor);
+      current = current.next.orElse(null);
     }
-    return output;
-
+    return flatten(tensor);
   }
 
   @Override
   public void train(double[][] x, double[][] y, double learningRate, int epochs) {
     for (int epoch = 0; epoch < epochs; epoch++) {
       for (int i = 0; i < x.length; i++) {
-        if( i % 100 == 0){
-          System.out.print("\r Epoch:"+epoch+" i:"+i);
+        if (i % 100 == 0) {
+          System.out.print("\r Epoch:" + epoch + " i:" + i);
         }
         double[] output = forward(x[i]);
-        double[] gradient = lossFunction.calculateGradient(output, y[i]);
+        double[][][] gradient = convertTo3D(lossFunction.calculateGradient(output, y[i]), 1, 1, output.length);
 
         if (head.isPresent()) {
           LayerBase current = head.get();
@@ -118,6 +111,20 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       result[d][h][w] = input[i];
     }
 
+    return result;
+  }
+
+  private double[] flatten(double[][][] tensor) {
+    int size = tensor.length * tensor[0].length * tensor[0][0].length;
+    double[] result = new double[size];
+    int index = 0;
+    for (int d = 0; d < tensor.length; d++) {
+      for (int h = 0; h < tensor[0].length; h++) {
+        for (int w = 0; w < tensor[0][0].length; w++) {
+          result[index++] = tensor[d][h][w];
+        }
+      }
+    }
     return result;
   }
 }
