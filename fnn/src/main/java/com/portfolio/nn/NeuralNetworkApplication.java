@@ -90,7 +90,13 @@ public class NeuralNetworkApplication {
           .addLayer(
               new FCLayer(10, ActivationFunction.SIGMOID));
 
-      cnn.train(trainData.getImages(), DataUtils.oneHotEncode(trainData.getLabels()), 0.001, 1);
+      int subsetSize = 1000;
+      double[][] trainSubset = new double[subsetSize][];
+      int[] labelSubset = new int[subsetSize];
+      System.arraycopy(trainData.getImages(), 0, trainSubset, 0, subsetSize);
+      System.arraycopy(trainData.getLabels(), 0, labelSubset, 0, subsetSize);
+
+      cnn.train(trainSubset, DataUtils.oneHotEncode(labelSubset), 0.001, 1);
       double accuracy = cnn.evaluate(testData.getImages(), DataUtils.oneHotEncode(testData.getLabels()));
       System.out.println("Accuracy: " + (accuracy * 100) + "%");
 
