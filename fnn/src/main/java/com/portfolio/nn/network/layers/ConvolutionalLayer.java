@@ -33,7 +33,7 @@ public class ConvolutionalLayer extends LayerBase {
   }
 
   @Override
-  protected void computeOutputShape(){
+  protected void computeOutputShape() {
     this.outputWidth = (inputWidth - filterSize + 2 * padding) / stride + 1;
     this.outputHeight = (inputHeight - filterSize + 2 * padding) / stride + 1;
   }
@@ -41,36 +41,32 @@ public class ConvolutionalLayer extends LayerBase {
   @Override
   public double[][][] forward(double[][][] input) {
     this.lastInput = input;
-    double[][][] output = new double[outputDepth][outputHeight][outputWidth];
+    double[][] inputCols = im2col(input);
 
+    double[][] filterMatrix = new double[outputDepth][filterSize * filterSize * inputDepth];
     for (int f = 0; f < filters.length; f++) {
-      for (int y = 0; y < outputHeight; y++) {
-        for (int x = 0; x < outputWidth; x++) {
-          double sum = convolve(input, f, x * stride, y * stride) + biases[f];
-          output[f][y][x] = activFunc.activate(sum);
+      int idx = 0;
+      for (int fy = 0; fy < filterSize; fy++) {
+        for (int fx = 0; fx < filterSize; fx++) {
+          filterMatrix[f][idx++] = filters[f][fy][fx];
         }
       }
     }
+
+    // Matrix mult
+    double[][] result = matrixMultiply(filterMatrix, transpose(inputCols));
+
+    double[][][] output = new double[outputDepth][outputHeight][outputWidth];
+    for (int f = 0; f < outputDepth; f++) {
+      for (int i = 0; i < outputHeight * outputWidth; i++) {
+        int y = i / outputWidth;
+        int x = i % outputWidth;
+        output[f][y][x] = activFunc.activate(result[f][i] + biases[f]);
+      }
+    }
+
     this.lastOutput = output;
     return output;
-  }
-
-  // Calculates dot product of inputs over specific window of inputs
-  private double convolve(double[][][] input, int filterIndex, int startX, int startY) {
-    double sum = 0.0;
-    for (int fy = 0; fy < filterSize; fy++) {
-      for (int fx = 0; fx < filterSize; fx++) {
-        int inputY = startY + fy - padding;
-        int inputX = startX + fx - padding;
-
-        if (inputY >= 0 && inputY < inputHeight && inputX >= 0 && inputX < inputWidth) {
-          for (int c = 0; c < inputDepth; c++) {
-            sum += input[c][inputY][inputX] * filters[filterIndex][fy][fx];
-          }
-        }
-      }
-    }
-    return sum;
   }
 
   @Override
@@ -102,5 +98,56 @@ public class ConvolutionalLayer extends LayerBase {
     }
     return inputGradient;
   }
+
+  private double[][] im2col(double[][][] input) {
+    int patchCount = outputHeight * outputWidth;
+    int patchSize = filterSize * filterSize * inputDepth;
+    double[][] patches = new double[patchCount][patchSize];
+
+    int patchIdx = 0;
+    for (int y = 0; y < outputHeight; y++) {
+      for (int x = 0; x < outputWidth; x++) {
+        int idx = 0;
+        for (int c = 0; c < inputDepth; c++) {
+          for (int fy = 0; fy < filterSize; fy++) {
+            for (int fx = 0; fx < filterSize; fx++) {
+              int inputY = y * stride + fy - padding;
+              int inputX = x * stride + fx - padding;
+              patches[patchIdx][idx++] = (inputY >= 0 && inputY < inputHeight &&
+                  inputX >= 0 && inputX < inputWidth) ? input[c][inputY][inputX] : 0.0;
+            }
+          }
+        }
+        patchIdx++;
+      }
+    }
+    return patches;
+  }
+
+  private double[][] matrixMultiply(double[][] a, double[][] b){
+    int aRows = a.length;
+    int aCols = a[0].length;
+    int bCols = b[0].length;
+    double[][] result = new double[aRows][bCols];
+
+    for (int i = 0; i < aRows; i++) {
+      for (int j = 0; j < bCols; j++) {
+        for (int k = 0; k < aCols; k++) {
+          result[i][j] += a[i][k] * b[k][j];
+        }
+      }
+    }
+    return result;
+  }
+
+  private double[][] transpose(double[][] matrix) {
+    double[][] result = new double[matrix[0].length][matrix.length];
+    for (int i = 0; i < matrix.length; i++) {
+        for (int j = 0; j < matrix[0].length; j++) {
+            result[j][i] = matrix[i][j];
+        }
+    }
+    return result;
+}
 
 }
