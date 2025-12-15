@@ -46,7 +46,7 @@ public class ConvolutionalLayer extends LayerBase {
     double[][] inputCols = im2col(input);
 
     double[][] filterMatrix = new double[outputDepth][filterSize * filterSize * inputDepth];
-    IntStream.range(0,filters.length).parallel().forEach(f -> {
+    IntStream.range(0, filters.length).parallel().forEach(f -> {
       int idx = 0;
       for (int fy = 0; fy < filterSize; fy++) {
         for (int fx = 0; fx < filterSize; fx++) {
@@ -54,13 +54,11 @@ public class ConvolutionalLayer extends LayerBase {
         }
       }
     });
-    
 
-    // Matrix mult
     double[][] result = matrixMultiply(filterMatrix, transpose(inputCols));
 
     double[][][] output = new double[outputDepth][outputHeight][outputWidth];
-    IntStream.range(0, outputDepth).parallel().forEach(f ->{
+    IntStream.range(0, outputDepth).parallel().forEach(f -> {
       for (int i = 0; i < outputHeight * outputWidth; i++) {
         int y = i / outputWidth;
         int x = i % outputWidth;
@@ -76,12 +74,13 @@ public class ConvolutionalLayer extends LayerBase {
   public double[][][] backward(double[][][] gradient, double learningRate) {
     double[][][] inputGradient = new double[inputDepth][inputHeight][inputWidth];
 
-    for (int f = 0; f < filters.length; f++) {
+    IntStream.range(0, filters.length).parallel().forEach(f -> {
       for (int y = 0; y < outputHeight; y++) {
         for (int x = 0; x < outputWidth; x++) {
           double delta = gradient[f][y][x] * activFunc.derivative(lastOutput[f][y][x]);
-          biases[f] -= learningRate * delta;
-
+          synchronized (this) {
+            biases[f] -= learningRate * delta;
+          }
           // Updates filter weights
           for (int fy = 0; fy < filterSize; fy++) {
             for (int fx = 0; fx < filterSize; fx++) {
@@ -90,15 +89,19 @@ public class ConvolutionalLayer extends LayerBase {
 
               if (inputY >= 0 && inputY < inputHeight && inputX >= 0 && inputX < inputWidth) {
                 for (int c = 0; c < inputDepth; c++) {
-                  inputGradient[c][inputY][inputX] += filters[f][fy][fx] * delta;
-                  filters[f][fy][fx] -= learningRate * lastInput[c][inputY][inputX] * delta;
+                  synchronized (inputGradient) {
+                    inputGradient[c][inputY][inputX] += filters[f][fy][fx] * delta;
+                  }
+                  synchronized (filters[f]) {
+                    filters[f][fy][fx] -= learningRate * lastInput[c][inputY][inputX] * delta;
+                  }
                 }
               }
             }
           }
         }
       }
-    }
+    });
     return inputGradient;
   }
 
@@ -127,7 +130,7 @@ public class ConvolutionalLayer extends LayerBase {
     return patches;
   }
 
-  private double[][] matrixMultiply(double[][] a, double[][] b){
+  private double[][] matrixMultiply(double[][] a, double[][] b) {
     int aRows = a.length;
     int aCols = a[0].length;
     int bCols = b[0].length;
@@ -146,11 +149,11 @@ public class ConvolutionalLayer extends LayerBase {
   private double[][] transpose(double[][] matrix) {
     double[][] result = new double[matrix[0].length][matrix.length];
     for (int i = 0; i < matrix.length; i++) {
-        for (int j = 0; j < matrix[0].length; j++) {
-            result[j][i] = matrix[i][j];
-        }
+      for (int j = 0; j < matrix[0].length; j++) {
+        result[j][i] = matrix[i][j];
+      }
     }
     return result;
-}
+  }
 
 }
