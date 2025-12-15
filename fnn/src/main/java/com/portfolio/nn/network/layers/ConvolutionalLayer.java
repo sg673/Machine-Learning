@@ -1,5 +1,7 @@
 package com.portfolio.nn.network.layers;
 
+import java.util.stream.IntStream;
+
 import com.portfolio.nn.network.activation.ActivationFunction;
 
 public class ConvolutionalLayer extends LayerBase {
@@ -44,26 +46,27 @@ public class ConvolutionalLayer extends LayerBase {
     double[][] inputCols = im2col(input);
 
     double[][] filterMatrix = new double[outputDepth][filterSize * filterSize * inputDepth];
-    for (int f = 0; f < filters.length; f++) {
+    IntStream.range(0,filters.length).parallel().forEach(f -> {
       int idx = 0;
       for (int fy = 0; fy < filterSize; fy++) {
         for (int fx = 0; fx < filterSize; fx++) {
           filterMatrix[f][idx++] = filters[f][fy][fx];
         }
       }
-    }
+    });
+    
 
     // Matrix mult
     double[][] result = matrixMultiply(filterMatrix, transpose(inputCols));
 
     double[][][] output = new double[outputDepth][outputHeight][outputWidth];
-    for (int f = 0; f < outputDepth; f++) {
+    IntStream.range(0, outputDepth).parallel().forEach(f ->{
       for (int i = 0; i < outputHeight * outputWidth; i++) {
         int y = i / outputWidth;
         int x = i % outputWidth;
         output[f][y][x] = activFunc.activate(result[f][i] + biases[f]);
       }
-    }
+    });
 
     this.lastOutput = output;
     return output;
