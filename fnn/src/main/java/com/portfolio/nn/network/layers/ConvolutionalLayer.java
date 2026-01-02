@@ -1,5 +1,7 @@
 package com.portfolio.nn.network.layers;
 
+import java.util.stream.IntStream;
+
 import com.portfolio.nn.network.activation.ActivationFunction;
 
 public class ConvolutionalLayer extends LayerBase {
@@ -7,6 +9,9 @@ public class ConvolutionalLayer extends LayerBase {
   private int filterSize;
   private int stride;
   private int padding;
+
+  private double[][] filterMatrix;
+  private double[] flatOutput;
 
   public ConvolutionalLayer(
       int filterCount, int filterSize, int stride, int padding,
@@ -17,11 +22,7 @@ public class ConvolutionalLayer extends LayerBase {
     this.stride = stride;
     this.padding = padding;
     this.activFunc = activationFunction;
-
-    // Calculate output dimensions
-    // this.outputWidth = (inputWidth - filterSize + 2 * padding) / stride + 1;
-    // this.outputHeight = (inputHeight - filterSize + 2 * padding) / stride + 1;
-    // this.size = outputWidth * outputHeight * filterCount;
+    this.outputDepth = filterCount;
 
     // Initialize filters
     this.filters = new double[filterCount][filterSize][filterSize];
@@ -37,64 +38,78 @@ public class ConvolutionalLayer extends LayerBase {
   }
 
   @Override
-  public int getOutputDepth() {
-    return filters.length;
-  }
-
-  @Override
-  public void updateOutputShape() {
+  protected void computeOutputShape() {
     this.outputWidth = (inputWidth - filterSize + 2 * padding) / stride + 1;
     this.outputHeight = (inputHeight - filterSize + 2 * padding) / stride + 1;
-    this.size = outputWidth * outputHeight * getOutputDepth();
+
+    this.filterMatrix = new double[outputDepth][filterSize * filterSize * inputDepth];
+    this.flatOutput = new double[outputDepth * outputHeight * outputWidth];
+    
+    // Pre-compute filter matrix once
+    IntStream.range(0, filters.length).parallel().forEach(f -> {
+      int idx = 0;
+      for (int fy = 0; fy < filterSize; fy++) {
+        for (int fx = 0; fx < filterSize; fx++) {
+          filterMatrix[f][idx++] = filters[f][fy][fx];
+        }
+      }
+    });
   }
 
   @Override
-  public double[] forward(double[][][] input) {
+  public double[][][] forward(double[][][] input) {
     this.lastInput = input;
-    double[] output = new double[size];
-    int outputIndex = 0;
-
-    for (int f = 0; f < filters.length; f++) {
+    int outputSize = outputHeight * outputWidth;
+    
+    IntStream.range(0, outputDepth).parallel().forEach(f -> {
+      int baseIdx = f * outputSize;
       for (int y = 0; y < outputHeight; y++) {
         for (int x = 0; x < outputWidth; x++) {
-          double sum = convolve(input, f, x * stride, y * stride) + biases[f];
-          output[outputIndex++] = activFunc.activate(sum);
+          double sum = biases[f];
+          
+          // Direct convolution computation
+          for (int c = 0; c < inputDepth; c++) {
+            for (int fy = 0; fy < filterSize; fy++) {
+              for (int fx = 0; fx < filterSize; fx++) {
+                int inputY = y * stride + fy - padding;
+                int inputX = x * stride + fx - padding;
+                
+                if (inputY >= 0 && inputY < inputHeight && inputX >= 0 && inputX < inputWidth) {
+                  sum += input[c][inputY][inputX] * filters[f][fy][fx];
+                }
+              }
+            }
+          }
+          
+          flatOutput[baseIdx + y * outputWidth + x] = activFunc.activate(sum);
         }
       }
-    }
+    });
+
+    // Convert flat output to 3D - optimized memory allocation
+    double[][][] output = new double[outputDepth][outputHeight][outputWidth];
+    IntStream.range(0, outputDepth).parallel().forEach(f -> {
+      int baseIdx = f * outputSize;
+      for (int y = 0; y < outputHeight; y++) {
+        System.arraycopy(flatOutput, baseIdx + y * outputWidth, output[f][y], 0, outputWidth);
+      }
+    });
+
     this.lastOutput = output;
     return output;
   }
 
-  // Calculates dot product of inputs over specific window of inputs
-  private double convolve(double[][][] input, int filterIndex, int startX, int startY) {
-    double sum = 0.0;
-    for (int fy = 0; fy < filterSize; fy++) {
-      for (int fx = 0; fx < filterSize; fx++) {
-        int inputY = startY + fy - padding;
-        int inputX = startX + fx - padding;
-
-        if (inputY >= 0 && inputY < inputHeight && inputX >= 0 && inputX < inputWidth) {
-          for (int c = 0; c < inputDepth; c++) {
-            sum += input[c][inputY][inputX] * filters[filterIndex][fy][fx];
-          }
-        }
-      }
-    }
-    return sum;
-  }
-
   @Override
-  public double[] backward(double[] gradient, double learningRate) {
-    double[] inputGradient = new double[inputWidth * inputHeight * inputDepth];
-    int gradIndex = 0;
+  public double[][][] backward(double[][][] gradient, double learningRate) {
+    double[][][] inputGradient = new double[inputDepth][inputHeight][inputWidth];
 
-    for (int f = 0; f < filters.length; f++) {
+    IntStream.range(0, filters.length).parallel().forEach(f -> {
       for (int y = 0; y < outputHeight; y++) {
         for (int x = 0; x < outputWidth; x++) {
-          double delta = gradient[gradIndex++];
-          biases[f] -= learningRate * delta;
-
+          double delta = gradient[f][y][x] * activFunc.derivative(lastOutput[f][y][x]);
+          synchronized (this) {
+            biases[f] -= learningRate * delta;
+          }
           // Updates filter weights
           for (int fy = 0; fy < filterSize; fy++) {
             for (int fx = 0; fx < filterSize; fx++) {
@@ -103,17 +118,19 @@ public class ConvolutionalLayer extends LayerBase {
 
               if (inputY >= 0 && inputY < inputHeight && inputX >= 0 && inputX < inputWidth) {
                 for (int c = 0; c < inputDepth; c++) {
-                  int inputIndex = c * inputWidth * inputHeight + inputY * inputWidth + inputX;
-                  inputGradient[inputIndex] += filters[f][fy][fx] * delta;
-                  filters[f][fy][fx] -= learningRate * lastInput[c][inputY][inputX] * delta;
+                  synchronized (inputGradient) {
+                    inputGradient[c][inputY][inputX] += filters[f][fy][fx] * delta;
+                  }
+                  synchronized (filters[f]) {
+                    filters[f][fy][fx] -= learningRate * lastInput[c][inputY][inputX] * delta;
+                  }
                 }
               }
             }
           }
         }
       }
-    }
+    });
     return inputGradient;
   }
-
 }

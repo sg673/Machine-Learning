@@ -40,7 +40,7 @@ public class NeuralNetworkApplication {
       double[][] trainLabels = DataUtils.oneHotEncode(trainData.getLabels());
       double[][] testLabels = DataUtils.oneHotEncode(testData.getLabels());
 
-      network.train(trainData.getImages(), trainLabels, 0.02, 1);
+      network.train(trainData.getImages(), trainLabels, 0.01, 10);
       double accuracy = network.evaluate(testData.getImages(), testLabels);
       System.out.println("Test Accuracy: " + (accuracy * 100) + "%");
       // network.save("t1");
@@ -60,37 +60,30 @@ public class NeuralNetworkApplication {
 
       ConvolutionalNetwork cnn = new ConvolutionalNetwork();
 
-      // 28x28x1 -> 24x24x32 -> 12x12x32 -> 8x8x64 -> 4x4x64 -> 128 -> 10
-      // cnn.addLayer(
-      // new ConvolutionalLayer(28,28,1,32,5,1,0,ActivationFunction.RELU)
-      // ).addLayer(
-      // new PoolingLayer(24,24,32,2,2,PoolingLayer.PoolingType.MAX)
-      // ).addLayer(
-      // new ConvolutionalLayer(12,12,32,64,5,1,0,ActivationFunction.RELU)
-      // ).addLayer(
-      // new PoolingLayer(8,8,64,2,2,PoolingLayer.PoolingType.MAX)
-      // ).addLayer(
-      // new FCLayer(4,4,64,128, ActivationFunction.RELU)
-      // ).addLayer(
-      // new FCLayer(1,1,128,10,ActivationFunction.SIGMOID)
-      // );
+      // cnn
+      //     .addLayer(
+      //         new ConvolutionalLayer(8, 3, 1, 0, ActivationFunction.NONE))
+      //     .addLayer(
+      //         new FCLayer(128, ActivationFunction.RELU))
+      //     .addLayer(
+      //         new FCLayer(10, ActivationFunction.SIGMOID));
 
       cnn.addLayer(
-          new ConvolutionalLayer(32, 3, 1, 0, ActivationFunction.RELU))
-          .addLayer(
-              new ConvolutionalLayer(32, 3, 1, 0, ActivationFunction.RELU))
-          .addLayer(
-              new PoolingLayer(2, 1, PoolingType.MAX))
-          .addLayer(
-              new ConvolutionalLayer(64, 3, 1, 0, ActivationFunction.RELU))
-          .addLayer(
-              new PoolingLayer(2, 1, PoolingType.MAX))
-          .addLayer(
-              new FCLayer(128, ActivationFunction.RELU))
-          .addLayer(
-              new FCLayer(10, ActivationFunction.SIGMOID));
+      new ConvolutionalLayer(32, 3, 1, 0, ActivationFunction.RELU))
+      .addLayer(
+      new ConvolutionalLayer(32, 3, 1, 0, ActivationFunction.RELU))
+      .addLayer(
+      new PoolingLayer(2, 1, PoolingType.MAX))
+      .addLayer(
+      new ConvolutionalLayer(64, 3, 1, 0, ActivationFunction.RELU))
+      .addLayer(
+      new PoolingLayer(2, 1, PoolingType.MAX))
+      .addLayer(
+      new FCLayer(128, ActivationFunction.RELU))
+      .addLayer(
+      new FCLayer(10, ActivationFunction.SIGMOID));
 
-      int subsetSize = 1000;
+      int subsetSize = 60000;
       double[][] trainSubset = new double[subsetSize][];
       int[] labelSubset = new int[subsetSize];
       System.arraycopy(trainData.getImages(), 0, trainSubset, 0, subsetSize);

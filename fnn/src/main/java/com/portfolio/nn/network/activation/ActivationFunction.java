@@ -40,6 +40,19 @@ public enum ActivationFunction {
             double t = activate(x);
             return 1 - t * t;
         }
+    },
+
+    NONE {
+      @Override
+      public double activate(double x) {
+        return x;
+      }
+      @Override
+      public double derivative(double x) {
+        return 1.0;
+      }
+
+
     };
     
     public abstract double activate(double x);

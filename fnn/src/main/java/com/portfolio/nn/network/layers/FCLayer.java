@@ -9,56 +9,40 @@ public class FCLayer extends LayerBase {
   public FCLayer(int outputSize,
       ActivationFunction activationFunction) {
     super();
-    this.inputSize = inputWidth * inputHeight * inputDepth;
-
-    //TODO Disambiguate the output shape
-    this.size = outputSize;
-    this.outputHeight = outputSize;
+    this.outputDepth = outputSize;
     this.outputWidth = 1;
+    this.outputHeight = 1;
+
     this.activFunc = activationFunction;
-
-    this.weights = new double[outputSize][inputSize];
-    this.biases = new double[outputSize];
-    for (int i = 0; i < outputSize; i++) {
-      for (int j = 0; j < inputSize; j++) {
-        weights[i][j] = Math.random() * 0.1 - 0.05;
-      }
-      biases[i] = 0.0;
-    }
   }
 
   @Override
-  public int getOutputDepth() {
-    return 1;
-  }
-
-  @Override
-  public void updateOutputShape() {
+  protected void computeOutputShape() {
     this.inputSize = inputWidth * inputHeight * inputDepth;
-    this.weights = new double[size][inputSize];
-    this.biases = new double[size];
-    for (int i = 0; i < size; i++) {
+    this.weights = new double[outputDepth][inputSize];
+    this.biases = new double[outputDepth];
+
+    // Initialize weights
+    for (int i = 0; i < outputDepth; i++) {
       for (int j = 0; j < inputSize; j++) {
         weights[i][j] = Math.random() * 0.1 - 0.05;
       }
       biases[i] = 0.0;
     }
-    return;
   }
 
   @Override
-  public double[] forward(double[][][] input) {
+  public double[][][] forward(double[][][] input) {
     this.lastInput = input;
-    // Inputs need to be flattened so they're not 3d
     double[] flatInput = flatten(input);
-    double[] output = new double[size];
+    double[][][] output = new double[outputDepth][1][1];
 
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < outputDepth; i++) {
       double sum = biases[i];
       for (int j = 0; j < inputSize; j++) {
         sum += weights[i][j] * flatInput[j];
       }
-      output[i] = activFunc.activate(sum);
+      output[i][0][0] = activFunc.activate(sum);
     }
     this.lastOutput = output;
     return output;
@@ -78,17 +62,23 @@ public class FCLayer extends LayerBase {
   }
 
   @Override
-  public double[] backward(double[] gradient, double learningRate) {
+  public double[][][] backward(double[][][] gradient, double learningRate) {
     double[] flatInput = flatten(lastInput);
-    double[] inputGradient = new double[inputSize];
+    double[][][] inputGradient = new double[inputDepth][inputHeight][inputWidth];
 
-    for (int i = 0; i < size; i++) {
-      double delta = gradient[i] * activFunc.derivative(lastOutput[i]);
+    for (int i = 0; i < outputDepth; i++) {
+      double delta = gradient[i][0][0] * activFunc.derivative(lastOutput[i][0][0]);
       biases[i] -= learningRate * delta;
 
       for (int j = 0; j < inputSize; j++) {
         weights[i][j] -= learningRate * delta * flatInput[j];
-        inputGradient[j] += weights[i][j] * delta;
+
+        int c = j / (inputWidth * inputHeight);
+        int remaining = j % (inputWidth * inputHeight);
+        int y = remaining / inputWidth;
+        int x = remaining % inputWidth;
+
+        inputGradient[c][y][x] += weights[i][j] * delta;
       }
     }
     return inputGradient;
