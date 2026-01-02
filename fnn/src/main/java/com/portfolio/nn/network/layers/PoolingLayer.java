@@ -2,20 +2,40 @@ package com.portfolio.nn.network.layers;
 
 import java.util.stream.IntStream;
 
+/**
+ * Pooling Layer implementation for spatial downsampling and feature reduction.
+ * Reduces spatial dimensions while preserving important features through
+ * max or average pooling operations. Helps reduce overfitting and computational
+ * cost.
+ */
 public class PoolingLayer extends LayerBase {
-  // max preserves dominant features,
-  // average general patterns
+  /**
+   * Pooling operation types.
+   * MAX preserves dominant features, AVERAGE captures general patterns.
+   */
   public enum PoolingType {
     MAX, AVERAGE
   }
 
+  /** Size of square pooling window */
   private int poolSize;
+  /** Step size for pooling window movement */
   private int stride;
+  /** Type of pooling operation to perform */
   private PoolingType poolingType;
 
-  private int[][][] maxIndices; // [channel][y][x] -> flattened index of max element
+  /** Cached indices of max elements for backpropagation */
+  private int[][][] maxIndices;
+  /** Cached output for efficient memory usage */
   private double[][][] outputCache;
 
+  /**
+   * Creates a pooling layer with specified parameters.
+   * 
+   * @param poolSize    size of square pooling window
+   * @param stride      step size for pooling
+   * @param poolingType MAX or AVERAGE pooling
+   */
   public PoolingLayer(
       int poolSize, int stride, PoolingType poolingType) {
 
@@ -108,7 +128,7 @@ public class PoolingLayer extends LayerBase {
         }
       }
     });
-    
+
     return inputGradient;
   }
 }

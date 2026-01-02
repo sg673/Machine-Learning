@@ -2,8 +2,16 @@ package com.portfolio.nn.network.layers;
 
 import com.portfolio.nn.network.activation.ActivationFunction;
 
+/**
+ * Fully Connected (Dense) Layer implementation for neural networks.
+ * Transforms input tensors into a flat vector and applies linear transformation
+ * followed by activation function. Commonly used as output layers or between
+ * convolutional and output layers.
+ */
 public class FCLayer extends LayerBase {
+  /** Weight matrix connecting all inputs to all outputs */
   private double[][] weights;
+  /** Total number of input features after flattening */
   private int inputSize;
 
   public FCLayer(int outputSize,
@@ -16,6 +24,10 @@ public class FCLayer extends LayerBase {
     this.activFunc = activationFunction;
   }
 
+  /**
+   * Computes output shape and initializes weights and biases.
+   * Flattens 3D input to 1D and sets up weight matrix accordingly.
+   */
   @Override
   protected void computeOutputShape() {
     this.inputSize = inputWidth * inputHeight * inputDepth;
@@ -48,6 +60,12 @@ public class FCLayer extends LayerBase {
     return output;
   }
 
+  /**
+   * Flattens 3D input tensor to 1D array for matrix multiplication.
+   * 
+   * @param input 3D input tensor
+   * @return flattened 1D array
+   */
   private double[] flatten(double[][][] input) {
     double[] flat = new double[inputSize];
     int index = 0;

@@ -4,15 +4,36 @@ import java.util.stream.IntStream;
 
 import com.portfolio.nn.network.activation.ActivationFunction;
 
+/**
+ * Convolutional Layer implementation for feature extraction from spatial data.
+ * Applies learnable filters across input using convolution operation to detect
+ * local patterns and features. Supports configurable filter size, stride, and
+ * padding.
+ */
 public class ConvolutionalLayer extends LayerBase {
-  private double[][][] filters; // [filterCount][filterHeight][filterWidth]
+  /** 3D filters for convolution [filterCount][filterHeight][filterWidth] */
+  private double[][][] filters;
+  /** Size of square convolution filters */
   private int filterSize;
+  /** Step size for filter movement */
   private int stride;
+  /** Zero-padding around input borders */
   private int padding;
 
+  /** Pre-computed filter matrix for optimization */
   private double[][] filterMatrix;
+  /** Flattened output cache for parallel processing */
   private double[] flatOutput;
 
+  /**
+   * Creates a convolutional layer with specified parameters.
+   * 
+   * @param filterCount        number of filters (output channels)
+   * @param filterSize         size of square filters
+   * @param stride             step size for convolution
+   * @param padding            zero-padding around input
+   * @param activationFunction activation function for outputs
+   */
   public ConvolutionalLayer(
       int filterCount, int filterSize, int stride, int padding,
       ActivationFunction activationFunction) {
@@ -37,6 +58,10 @@ public class ConvolutionalLayer extends LayerBase {
     }
   }
 
+  /**
+   * Computes output dimensions based on convolution parameters.
+   * Formula: (input_size - filter_size + 2*padding) / stride + 1
+   */
   @Override
   protected void computeOutputShape() {
     this.outputWidth = (inputWidth - filterSize + 2 * padding) / stride + 1;
@@ -44,7 +69,7 @@ public class ConvolutionalLayer extends LayerBase {
 
     this.filterMatrix = new double[outputDepth][filterSize * filterSize * inputDepth];
     this.flatOutput = new double[outputDepth * outputHeight * outputWidth];
-    
+
     // Pre-compute filter matrix once
     IntStream.range(0, filters.length).parallel().forEach(f -> {
       int idx = 0;
@@ -60,27 +85,27 @@ public class ConvolutionalLayer extends LayerBase {
   public double[][][] forward(double[][][] input) {
     this.lastInput = input;
     int outputSize = outputHeight * outputWidth;
-    
+
     IntStream.range(0, outputDepth).parallel().forEach(f -> {
       int baseIdx = f * outputSize;
       for (int y = 0; y < outputHeight; y++) {
         for (int x = 0; x < outputWidth; x++) {
           double sum = biases[f];
-          
+
           // Direct convolution computation
           for (int c = 0; c < inputDepth; c++) {
             for (int fy = 0; fy < filterSize; fy++) {
               for (int fx = 0; fx < filterSize; fx++) {
                 int inputY = y * stride + fy - padding;
                 int inputX = x * stride + fx - padding;
-                
+
                 if (inputY >= 0 && inputY < inputHeight && inputX >= 0 && inputX < inputWidth) {
                   sum += input[c][inputY][inputX] * filters[f][fy][fx];
                 }
               }
             }
           }
-          
+
           flatOutput[baseIdx + y * outputWidth + x] = activFunc.activate(sum);
         }
       }
