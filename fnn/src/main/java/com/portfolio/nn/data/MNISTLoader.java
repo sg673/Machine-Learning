@@ -7,10 +7,16 @@ import java.io.IOException;
  * MNIST dataset loader implementation.
  */
 public class MNISTLoader implements DataLoader {
-    private static final String TRAIN_IMAGES = "/archive/processed/mnist/mnist-train-images.idx3-ubyte";
-    private static final String TRAIN_LABELS = "/archive/processed/mnist/mnist-train-labels.idx1-ubyte";
-    private static final String TEST_IMAGES = "/archive/processed/mnist/mnist-test-images.idx3-ubyte";
-    private static final String TEST_LABELS = "/archive/processed/mnist/mnist-test-labels.idx1-ubyte";
+    // private static final String TRAIN_IMAGES = "/archive/processed/mnist/mnist-train-images.idx3-ubyte";
+    // private static final String TRAIN_LABELS = "/archive/processed/mnist/mnist-train-labels.idx1-ubyte";
+    // private static final String TEST_IMAGES = "/archive/processed/mnist/mnist-test-images.idx3-ubyte";
+    // private static final String TEST_LABELS = "/archive/processed/mnist/mnist-test-labels.idx1-ubyte";
+
+    private static final String TRAIN_IMAGES = "/archive/raw/mnist/train-images.idx3-ubyte";
+    private static final String TRAIN_LABELS = "/archive/raw/mnist/train-labels.idx1-ubyte";
+    private static final String TEST_IMAGES = "/archive/raw/mnist/t10k-images.idx3-ubyte";
+    private static final String TEST_LABELS = "/archive/raw/mnist/t10k-labels.idx1-ubyte";
+
 
     @Override
     public Dataset loadTraining() throws IOException {
