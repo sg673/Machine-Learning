@@ -3,6 +3,7 @@ package com.portfolio.nn.network.layers;
 import java.util.stream.IntStream;
 
 import com.portfolio.nn.network.activation.ActivationFunction;
+import com.portfolio.nn.util.MathUtils;
 
 public class ConvolutionalLayer extends LayerBase {
   private double[][][] filters; // [filterCount][filterHeight][filterWidth]
@@ -55,7 +56,7 @@ public class ConvolutionalLayer extends LayerBase {
       }
     });
 
-    double[][] result = matrixMultiply(filterMatrix, transpose(inputCols));
+    double[][] result = MathUtils.matrixMultiply(filterMatrix, transpose(inputCols));
 
     double[][][] output = new double[outputDepth][outputHeight][outputWidth];
     IntStream.range(0, outputDepth).parallel().forEach(f -> {
@@ -130,21 +131,9 @@ public class ConvolutionalLayer extends LayerBase {
     return patches;
   }
 
-  private double[][] matrixMultiply(double[][] a, double[][] b) {
-    int aRows = a.length;
-    int aCols = a[0].length;
-    int bCols = b[0].length;
-    double[][] result = new double[aRows][bCols];
+  
 
-    for (int i = 0; i < aRows; i++) {
-      for (int j = 0; j < bCols; j++) {
-        for (int k = 0; k < aCols; k++) {
-          result[i][j] += a[i][k] * b[k][j];
-        }
-      }
-    }
-    return result;
-  }
+  
 
   private double[][] transpose(double[][] matrix) {
     double[][] result = new double[matrix[0].length][matrix.length];
