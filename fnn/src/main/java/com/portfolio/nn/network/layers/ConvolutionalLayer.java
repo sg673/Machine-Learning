@@ -21,9 +21,9 @@ public class ConvolutionalLayer extends LayerBase {
   private int padding;
 
   /** Pre-computed filter matrix for optimization */
-  private double[][] filterMatrix;
+  private transient double[][] filterMatrix;
   /** Flattened output cache for parallel processing */
-  private double[] flatOutput;
+  private transient double[] flatOutput;
 
   /**
    * Creates a convolutional layer with specified parameters.

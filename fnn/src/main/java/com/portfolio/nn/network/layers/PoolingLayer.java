@@ -25,9 +25,9 @@ public class PoolingLayer extends LayerBase {
   private PoolingType poolingType;
 
   /** Cached indices of max elements for backpropagation */
-  private int[][][] maxIndices;
+  private transient int[][][] maxIndices;
   /** Cached output for efficient memory usage */
-  private double[][][] outputCache;
+  private transient double[][][] outputCache;
 
   /**
    * Creates a pooling layer with specified parameters.
