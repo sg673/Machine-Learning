@@ -10,7 +10,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <Header currentPage={currentPage} onPageChange={setCurrentPage} />
+      <Header currentPage={currentPage} onPageChange={(page) => setCurrentPage(page as Page)} />
       {currentPage === 'dashboard' && <Dashboard />}
       {currentPage === 'modelBuilder' && <ModelBuilder />}
     </div>

@@ -101,7 +101,7 @@ export function ModelBuilder() {
   );
 }
 
-function getDefaultConfig(layerType: LayerType): Record<string, any> {
+function getDefaultConfig(layerType: LayerType): Record<string, string | number> {
   switch (layerType) {
     case 'conv2d':
       return { filters: 32, kernelSize: 3, stride: 1, padding: 1, activation: 'RELU' };
@@ -140,7 +140,8 @@ function topologicalSort(layers: Layer[]): Layer[] {
   return result;
 }
 
-function getInputShape(layer?: Layer): [number, number, number] {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getInputShape(_layer?: Layer): [number, number, number] {
   return [28, 28, 1]; // Default MNIST shape
 }
 

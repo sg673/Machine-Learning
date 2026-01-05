@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { CNNModel } from './types';
+import type { CNNModel, Layer } from './types';
 import { modelApi } from '../services/api';
 
 interface ModelExportProps {
@@ -22,9 +22,11 @@ export function ModelExport({ model, onExport }: ModelExportProps) {
 
     try {
       const exportData = {
-        id: `cnn_${Date.now()}`,
-        name: model.name,
-        type: 'CNN',
+        modelName: model.name,
+        trainingData: 'MNIST',
+        epochs: 10,
+        batchSize: 32,
+        learningRate: 0.001,
         layers: serializeLayers(model),
         activationFunction: getDefaultActivation(model),
       };
@@ -160,7 +162,7 @@ function getDefaultActivation(model: CNNModel): string {
   return 'RELU';
 }
 
-function getLayerParams(layer: any): string {
+function getLayerParams(layer: Layer): string {
   switch (layer.type) {
     case 'conv2d':
       return `${layer.config.filters}@${layer.config.kernelSize}×${layer.config.kernelSize}`;

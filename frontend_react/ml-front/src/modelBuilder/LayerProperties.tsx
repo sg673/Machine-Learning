@@ -7,7 +7,7 @@ interface LayerPropertiesProps {
 }
 
 export function LayerProperties({ layer, onUpdate, onDelete }: LayerPropertiesProps) {
-  const updateConfig = (key: string, value: any) => {
+  const updateConfig = (key: string, value: string | number) => {
     onUpdate({
       config: { ...layer.config, [key]: value }
     });
@@ -67,7 +67,7 @@ export function LayerProperties({ layer, onUpdate, onDelete }: LayerPropertiesPr
   );
 }
 
-function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, value: any) => void) {
+function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, value: string | number) => void) {
   switch (layer.type) {
     case 'conv2d':
       return (
