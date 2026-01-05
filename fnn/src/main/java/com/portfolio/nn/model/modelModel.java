@@ -5,7 +5,7 @@ import com.portfolio.nn.network.activation.ActivationFunction;
  * This class is for structuring user inputs.
  * It should not be used to save models or be persisted in any way
  * For that, look at Model
- * FIX ME - change naming to fix this ambiguity
+ * TODO - change naming to fix this ambiguity
  */
 
 
