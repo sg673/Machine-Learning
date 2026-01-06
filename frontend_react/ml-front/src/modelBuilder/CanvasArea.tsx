@@ -82,7 +82,7 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(
         }}
       >
         {/* Connection lines */}
-        <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+        <svg className="absolute inset-0 pointer-events-none w-full h-full" style={{ zIndex: 1 }}>
           {layers.map(layer => 
             layer.connections.map(connId => {
               const targetLayer = layers.find(l => l.id === connId);
