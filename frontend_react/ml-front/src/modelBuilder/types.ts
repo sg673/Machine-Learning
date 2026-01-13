@@ -10,6 +10,7 @@ export interface Layer {
   id: string;
   type: LayerType;
   position: { x: number; y: number };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: Record<string, any>;
   connections: string[];
 }
@@ -42,7 +43,7 @@ export interface LayerConfig {
     units: number;
     activation: string;
   };
-  flatten: {};
+  //flatten: {};
   dropout: {
     rate: number;
   };
