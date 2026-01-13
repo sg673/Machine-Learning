@@ -27,6 +27,10 @@ export function ModelBuilder() {
     setLayers(prev => prev.map(layer => 
       layer.id === layerId ? { ...layer, ...updates } : layer
     ));
+    // Update selected layer if it's the one being updated
+    setSelectedLayer(prev => 
+      prev?.id === layerId ? { ...prev, ...updates } : prev
+    );
   }, []);
 
   const deleteLayer = useCallback((layerId: string) => {
@@ -86,6 +90,7 @@ export function ModelBuilder() {
       <div className="w-80 bg-bg-alt border-l border-border">
         {selectedLayer ? (
           <LayerProperties
+            key={selectedLayer.id}
             layer={selectedLayer}
             onUpdate={(updates) => updateLayer(selectedLayer.id, updates)}
             onDelete={() => deleteLayer(selectedLayer.id)}

@@ -76,7 +76,7 @@ function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, val
             <label className="block text-sm font-medium text-text-col-alt mb-1">Filters</label>
             <input
               type="number"
-              value={layer.config.filters}
+              value={layer.config.filters || 32}
               onChange={(e) => updateConfig('filters', parseInt(e.target.value) || 1)}
               min="1"
               max="512"
@@ -86,7 +86,7 @@ function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, val
           <div>
             <label className="block text-sm font-medium text-text-col-alt mb-1">Kernel Size</label>
             <select
-              value={layer.config.kernelSize}
+              value={layer.config.kernelSize || 3}
               onChange={(e) => updateConfig('kernelSize', parseInt(e.target.value))}
               className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt"
             >
@@ -100,7 +100,7 @@ function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, val
             <label className="block text-sm font-medium text-text-col-alt mb-1">Stride</label>
             <input
               type="number"
-              value={layer.config.stride}
+              value={layer.config.stride || 1}
               onChange={(e) => updateConfig('stride', parseInt(e.target.value) || 1)}
               min="1"
               max="4"
@@ -111,7 +111,7 @@ function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, val
             <label className="block text-sm font-medium text-text-col-alt mb-1">Padding</label>
             <input
               type="number"
-              value={layer.config.padding}
+              value={layer.config.padding || 0}
               onChange={(e) => updateConfig('padding', parseInt(e.target.value) || 0)}
               min="0"
               max="10"
@@ -121,7 +121,7 @@ function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, val
           <div>
             <label className="block text-sm font-medium text-text-col-alt mb-1">Activation</label>
             <select
-              value={layer.config.activation}
+              value={layer.config.activation || 'RELU'}
               onChange={(e) => updateConfig('activation', e.target.value)}
               className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt"
             >
@@ -140,7 +140,7 @@ function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, val
           <div>
             <label className="block text-sm font-medium text-text-col-alt mb-1">Pool Size</label>
             <select
-              value={layer.config.poolSize}
+              value={layer.config.poolSize || 2}
               onChange={(e) => updateConfig('poolSize', parseInt(e.target.value))}
               className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt"
             >
@@ -153,7 +153,7 @@ function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, val
             <label className="block text-sm font-medium text-text-col-alt mb-1">Stride</label>
             <input
               type="number"
-              value={layer.config.stride}
+              value={layer.config.stride || 2}
               onChange={(e) => updateConfig('stride', parseInt(e.target.value) || 1)}
               min="1"
               max="4"
@@ -170,7 +170,7 @@ function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, val
             <label className="block text-sm font-medium text-text-col-alt mb-1">Units</label>
             <input
               type="number"
-              value={layer.config.units}
+              value={layer.config.units || 128}
               onChange={(e) => updateConfig('units', parseInt(e.target.value) || 1)}
               min="1"
               max="2048"
@@ -180,7 +180,7 @@ function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, val
           <div>
             <label className="block text-sm font-medium text-text-col-alt mb-1">Activation</label>
             <select
-              value={layer.config.activation}
+              value={layer.config.activation || 'RELU'}
               onChange={(e) => updateConfig('activation', e.target.value)}
               className="w-full px-3 py-2 bg-bg border border-border rounded text-text-col-alt"
             >
@@ -204,7 +204,7 @@ function renderLayerSpecificConfig(layer: Layer, updateConfig: (key: string, val
             min="0"
             max="0.9"
             step="0.1"
-            value={layer.config.rate}
+            value={layer.config.rate || 0.5}
             onChange={(e) => updateConfig('rate', parseFloat(e.target.value))}
             className="w-full"
           />
