@@ -6,6 +6,14 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name="cnnmodels")
 public class CNNModel {
   public enum LayerType {
     CONV2D("conv2d"),
@@ -58,9 +66,17 @@ public class CNNModel {
     public List<String> connections;
   }
 
+  @Id
+  @Column(name="model_id")
+  public String modelId;
+  @Column
   public String name;
+  @Lob
   public List<Layer> layers;
+  @Column(name="input_shape")
   public int[] inputShape;
+  @Column(name="output_size")
   public int outputSize;
+  @Column(name="training_data")
   public String trainingData;
 }
