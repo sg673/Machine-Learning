@@ -34,8 +34,9 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   public ConvolutionalNetwork addLayer(LayerBase layer) {
     if (head.isEmpty()) {
-      // TODO replace temp MNIST input with generic
-      layer.setInputShape(28, 28, 1);
+      int[] inputSize = trainingData.getInputSize();
+      layer.setInputShape(inputSize[0],inputSize[1],inputSize[2]);
+
       head = Optional.of(layer);
     } else {
       LayerBase current = head.get();
@@ -63,8 +64,8 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       throw new Error("No layers defined");
     }
     LayerBase current = head.get();
-    // TODO replace temp MNIST input with generic
-    double[][][] tensor = convertTo3D(input, 1, 28, 28);
+    int[] inputSize = trainingData.getInputSize();
+    double[][][] tensor = convertTo3D(input, inputSize[2], inputSize[1], inputSize[0]);
     while (current != null) {
       tensor = current.forward(tensor);
       current = current.next.orElse(null);
