@@ -34,21 +34,23 @@ public class CNNTrainingSession {
 
   }
 
-  private void initialiseDefaultAttributes(){
+  private void initialiseDefaultAttributes() {
     this.status = SessionStatus.INITIALIZED;
     this.currentEpoch = 0;
     this.currentBatch = 0;
     this.accuracy = 0.0;
     this.isRunning = false;
   }
-  
+
   /**
    * Save the trained model to Repository with timestamp.
-   * @param repo - Repo to save the result to 
+   * 
+   * @param repo - Repo to save the result to
    */
 
-  public boolean Save(ResultRepo repo){
-    if (this.isRunning) return false;
+  public boolean Save(ResultRepo repo) {
+    if (this.isRunning)
+      return false;
     Result result = new Result();
     result.setModelId(this.modelId);
     result.setSessionId(this.sessionId);
@@ -62,14 +64,78 @@ public class CNNTrainingSession {
     return true;
   }
 
-  public ConvolutionalNetwork getNetwork(){
+  public ConvolutionalNetwork getNetwork() {
     return this.network;
   }
-
-  public int getCurrentBatch(){
+  
+  // Getters
+  public int getCurrentBatch() {
     return this.currentBatch;
   }
-  public int getCurrentEpoch(){
+
+  public int getCurrentEpoch() {
     return this.currentEpoch;
   }
+
+  public String getSessionId() {
+    return sessionId;
+  }
+
+  public SessionStatus getStatus() {
+    return status;
+  }
+
+  public int getTotalEpochs() {
+    return totalEpochs;
+  }
+
+  public int getTotalBatches() {
+    return totalBatches;
+  }
+
+  public double getAccuracy() {
+    return accuracy;
+  }
+
+  public String getModelId() {
+    return modelId;
+  }
+
+  public String getTrainingData() {
+    return trainingData;
+  }
+
+  public long getStartTime() {
+    return startTime;
+  }
+
+  public boolean isRunning() {
+    return isRunning;
+  }
+
+  // Setters (only for non-final fields)
+  public void setStatus(SessionStatus status) {
+    this.status = status;
+  }
+
+  public void setCurrentEpoch(int currentEpoch) {
+    this.currentEpoch = currentEpoch;
+  }
+
+  public void setCurrentBatch(int currentBatch) {
+    this.currentBatch = currentBatch;
+  }
+
+  public void setTotalBatches(int totalBatches) {
+    this.totalBatches = totalBatches;
+  }
+
+  public void setAccuracy(double accuracy) {
+    this.accuracy = accuracy;
+  }
+
+  public void setRunning(boolean running) {
+    this.isRunning = running;
+  }
+
 }
