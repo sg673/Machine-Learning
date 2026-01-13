@@ -71,23 +71,24 @@ public class ModelController {
   }
 
   @GetMapping(value = "/models/cnn")
-  public ResponseEntity<Object> getAllCnnModels(){
+  public ResponseEntity<Object> getAllCnnModels() {
     return ResponseEntity.status(HttpStatus.OK).body(cnnModelService.getAll());
   }
 
   @GetMapping(value = "/models/cnn/{id}")
-  public ResponseEntity<Object> getCnnModelById(@PathVariable("id") String id){
+  public ResponseEntity<Object> getCnnModelById(@PathVariable("id") String id) {
     Optional<CNNModel> model = cnnModelService.getModelById(id);
-    if(model.isPresent()){
+    if (model.isPresent()) {
       return ResponseEntity.status(HttpStatus.OK).body(model.get());
     } else {
       return ResponseEntity.notFound().build();
     }
   }
+
   @DeleteMapping(value = "/models/cnn/{id}")
-  public ResponseEntity<Object> deleteCnnModelById(@PathVariable("id") String id){
+  public ResponseEntity<Object> deleteCnnModelById(@PathVariable("id") String id) {
     boolean deleted = cnnModelService.deleteById(id);
-    if(deleted){
+    if (deleted) {
       return ResponseEntity.noContent().build();
     } else {
       return ResponseEntity.notFound().build();
