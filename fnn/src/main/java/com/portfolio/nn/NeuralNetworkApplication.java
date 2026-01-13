@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import com.portfolio.nn.constants.DataSet;
 import com.portfolio.nn.data.DataLoader;
 import com.portfolio.nn.data.MNISTLoader;
 import com.portfolio.nn.network.ConvolutionalNetwork;
@@ -58,7 +59,7 @@ public class NeuralNetworkApplication {
       DataLoader.Dataset trainData = loader.loadTraining();
       DataLoader.Dataset testData = loader.loadTest();
 
-      ConvolutionalNetwork cnn = new ConvolutionalNetwork();
+      ConvolutionalNetwork cnn = new ConvolutionalNetwork(DataSet.MNIST);
 
       // cnn
       // .addLayer(
