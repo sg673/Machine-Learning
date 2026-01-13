@@ -21,7 +21,7 @@ public class CNNTrainingService {
   public String startTraining(CNNModel model, CNNTrainingParameters params){
     String sessionId = UUID.randomUUID().toString();
     ConvolutionalNetwork network = new ConvolutionalNetwork(DataSet.fromString(model.trainingData));
-    CNNTrainingSession session = new CNNTrainingSession(network, params, sessionId, sessionId);
+    CNNTrainingSession session = new CNNTrainingSession(network, params, model.modelId, sessionId);
     sessions.put(sessionId, session);
     
     new Thread(() ->{
