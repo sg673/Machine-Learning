@@ -37,7 +37,7 @@ export function Dashboard() {
         return () => clearInterval(interval);
     }, [sessionId]);
   return (
-    <div className="p-6 bg-bg min-h-screen">
+    <div className=" flex-1 p-6 bg-bg h-screen">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <StatsCard title="Models Trained" value="12" icon={robotIcon} />

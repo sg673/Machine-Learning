@@ -9,7 +9,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="flex h-screen flex-col bg-bg">
       <Header currentPage={currentPage} onPageChange={(page) => setCurrentPage(page as Page)} />
       {currentPage === 'dashboard' && <Dashboard />}
       {currentPage === 'modelBuilder' && <ModelBuilder />}
