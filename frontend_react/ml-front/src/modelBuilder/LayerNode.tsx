@@ -86,8 +86,10 @@ export function LayerNode({
       </div>
       
       {/* Connection points */}
-      <div className="absolute -left-1 top-1/2 w-2 h-2 bg-gray-400 rounded-full transform -translate-y-1/2" />
-      <div className="absolute -right-1 top-1/2 w-2 h-2 bg-gray-400 rounded-full transform -translate-y-1/2" />
+      <div className="absolute -left-1 top-1/2 w-2 h-2 bg-gray-400 rounded-full transform -translate-y-1/2" data-connection="left" />
+      <div className="absolute -right-1 top-1/2 w-2 h-2 bg-gray-400 rounded-full transform -translate-y-1/2" data-connection="right" />
+      <div className="absolute left-1/2 -top-1 w-2 h-2 bg-gray-400 rounded-full transform -translate-x-1/2" data-connection="top" />
+      <div className="absolute left-1/2 -bottom-1 w-2 h-2 bg-gray-400 rounded-full transform -translate-x-1/2" data-connection="bottom" />
     </div>
   );
 }

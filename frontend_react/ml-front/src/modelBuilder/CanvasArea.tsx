@@ -88,13 +88,15 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(
               const targetLayer = layers.find(l => l.id === connId);
               if (!targetLayer) return null;
 
+              const { start, end } = getConnectionPoints(layer, targetLayer);
+
               return (
                 <line
                   key={`${layer.id}-${connId}`}
-                  x1={layer.position.x + 60}
-                  y1={layer.position.y + 30}
-                  x2={targetLayer.position.x + 60}
-                  y2={targetLayer.position.y + 30}
+                  x1={start.x}
+                  y1={start.y}
+                  x2={end.x}
+                  y2={end.y}
                   stroke="#6B7280"
                   strokeWidth="2"
                   markerEnd="url(#arrowhead)"
@@ -154,3 +156,40 @@ export const CanvasArea = forwardRef<HTMLDivElement, CanvasAreaProps>(
     );
   }
 );
+
+function getConnectionPoints(fromLayer: Layer, toLayer: Layer) {
+  const fromCenter = { x: fromLayer.position.x + 64, y: fromLayer.position.y + 32 };
+  const toCenter = { x: toLayer.position.x + 64, y: toLayer.position.y + 32 };
+  
+  const dx = toCenter.x - fromCenter.x;
+  const dy = toCenter.y - fromCenter.y;
+  
+  // Determine which sides to connect based on relative positions
+  let fromSide: string, toSide: string;
+  
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // Horizontal connection
+    fromSide = dx > 0 ? 'right' : 'left';
+    toSide = dx > 0 ? 'left' : 'right';
+  } else {
+    // Vertical connection
+    fromSide = dy > 0 ? 'bottom' : 'top';
+    toSide = dy > 0 ? 'top' : 'bottom';
+  }
+  
+  const getPointForSide = (layer: Layer, side: string) => {
+    const base = { x: layer.position.x, y: layer.position.y };
+    switch (side) {
+      case 'left': return { x: base.x, y: base.y + 32 };
+      case 'right': return { x: base.x + 128, y: base.y + 32 };
+      case 'top': return { x: base.x + 64, y: base.y };
+      case 'bottom': return { x: base.x + 64, y: base.y + 64 };
+      default: return { x: base.x + 64, y: base.y + 32 };
+    }
+  };
+  
+  return {
+    start: getPointForSide(fromLayer, fromSide),
+    end: getPointForSide(toLayer, toSide)
+  };
+}
