@@ -19,6 +19,7 @@ export interface CNNModel {
   layers: Layer[];
   inputShape: [number, number, number];
   outputSize: number;
+  trainingData: string;
 }
 
 export interface LayerConfig {

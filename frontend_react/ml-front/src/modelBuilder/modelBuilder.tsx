@@ -52,7 +52,8 @@ export function ModelBuilder() {
       name: modelName || 'Untitled Model',
       layers: sortedLayers,
       inputShape: getInputShape(sortedLayers[0]),
-      outputSize: getOutputSize(sortedLayers[sortedLayers.length - 1])
+      outputSize: getOutputSize(sortedLayers[sortedLayers.length - 1]),
+      trainingData: 'MNIST' // TODO Placeholder, can be dynamic
     };
   }, [layers, modelName]);
 

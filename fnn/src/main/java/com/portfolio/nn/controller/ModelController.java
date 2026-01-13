@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.portfolio.nn.model.modelModel;
+import com.portfolio.nn.model.CNNModel;
 import com.portfolio.nn.model.Model;
 import com.portfolio.nn.service.ModelService;
 
@@ -57,5 +58,10 @@ public class ModelController {
     } else {
       return ResponseEntity.notFound().build();
     }
+  }
+
+  @PostMapping(value = "/models/cnn", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Object> postCNNModel(@RequestBody CNNModel model){
+    return ResponseEntity.ok().body(model);
   }
 }

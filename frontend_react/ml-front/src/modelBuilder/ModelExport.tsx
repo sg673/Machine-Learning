@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { CNNModel, Layer } from './types';
-import { modelApi } from '../services/api';
+import { cnnModelApi } from '../services/api';
 
 interface ModelExportProps {
   model: CNNModel;
@@ -21,17 +21,7 @@ export function ModelExport({ model, onExport }: ModelExportProps) {
     setExportStatus('Exporting model...');
 
     try {
-      const exportData = {
-        modelName: model.name,
-        trainingData: 'MNIST',
-        epochs: 10,
-        batchSize: 32,
-        learningRate: 0.001,
-        layers: serializeLayers(model),
-        activationFunction: getDefaultActivation(model),
-      };
-
-      await modelApi.create(exportData);
+      await cnnModelApi.create(model);
       setExportStatus('Model exported successfully!');
       onExport(model);
     } catch (error) {
@@ -131,35 +121,6 @@ export function ModelExport({ model, onExport }: ModelExportProps) {
       </div>
     </div>
   );
-}
-
-function serializeLayers(model: CNNModel): string {
-  return model.layers.map(layer => {
-    switch (layer.type) {
-      case 'conv2d':
-        return `Conv2D(${layer.config.filters},${layer.config.kernelSize},${layer.config.stride},${layer.config.padding})`;
-      case 'maxpool':
-        return `MaxPool(${layer.config.poolSize},${layer.config.stride})`;
-      case 'avgpool':
-        return `AvgPool(${layer.config.poolSize},${layer.config.stride})`;
-      case 'dense':
-        return `Dense(${layer.config.units})`;
-      case 'flatten':
-        return 'Flatten()';
-      case 'dropout':
-        return `Dropout(${layer.config.rate})`;
-      default:
-        return layer.type;
-    }
-  }).join(',');
-}
-
-function getDefaultActivation(model: CNNModel): string {
-  const lastLayer = model.layers[model.layers.length - 1];
-  if (lastLayer?.type === 'dense') {
-    return lastLayer.config.activation || 'RELU';
-  }
-  return 'RELU';
 }
 
 function getLayerParams(layer: Layer): string {
