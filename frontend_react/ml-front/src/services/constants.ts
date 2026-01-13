@@ -43,3 +43,8 @@ export const DATASET_CONFIG = {
     "MNIST": {inputSize:784, outputSize:10}
 }
 
+export type cnnTrainingParameters = {
+  epochs: number;
+  batchSize: number;
+  learningRate: number;
+}

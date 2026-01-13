@@ -1,5 +1,5 @@
 import type { CNNModel } from "../modelBuilder/types";
-import type { Model, Training, Result } from "./constants";
+import type { Model, Training, Result, cnnTrainingParameters } from "./constants";
 
 const BASE_URL = "http://localhost:8080/api/v1/";
 
@@ -78,5 +78,16 @@ export const cnnModelApi = {
   getAll: () => getJson<CNNModel[]>(`models/cnn`),
   getById: (id: string) => getJson<CNNModel>(`models/cnn/${id}`),
   delete: (id: string) => apiClient.delete(`models/cnn/${id}`).then(res => res.json()),
+
+}
+
+export const cnnTrainingApi = {
+  start: (modelId: string, params: cnnTrainingParameters) =>
+    apiClient.post(`training/cnn/${modelId}/start`, params).then(res => res.json),
+  status: (id: string) => 
+    getJson<Training>(`training/cnn/${id}/status`),
+  stop: (id: string) =>
+    apiClient.post(`training/cnn/${id}/stop`, {}).then(res => res.json()),
+
 
 }

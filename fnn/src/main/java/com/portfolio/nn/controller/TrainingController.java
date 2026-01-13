@@ -90,4 +90,19 @@ public class TrainingController {
         "status", SessionStatus.STOPPED));
 
   }
+
+  @PostMapping("/training/cnn/{id}/start")
+  public ResponseEntity<Object> startTrainingById(@PathVariable("id") String modelId){
+    return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+  }
+
+  @GetMapping("/training/cnn/{id}/status")
+  public ResponseEntity<Object> getCNNStatusById(@PathVariable("id") String sessionId) {
+    return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+  }
+
+  @PostMapping("/training/cnn/{id}/stop")
+  public ResponseEntity<Object> stopCNNTrainingById(@PathVariable("id") String sessionId) {
+    return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+  }
 }
