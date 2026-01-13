@@ -1,7 +1,10 @@
 package com.portfolio.nn.constants;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum DataSet {
-  MNIST {
+  MNIST("MNIST") {
     @Override
     public int[] getInputSize() {
       return new int[] { 28, 28, 1 };
@@ -27,6 +30,27 @@ public enum DataSet {
       return 10000;
     }
   };
+
+  private final String value;
+
+  DataSet(String value) {
+    this.value = value;
+  }
+
+  @JsonValue
+  public String getValue() {
+    return value;
+  }
+
+  @JsonCreator
+  public static DataSet fromString(String value) {
+    for (DataSet type : DataSet.values()) {
+      if (type.value.equalsIgnoreCase(value)) {
+        return type;
+      }
+    }
+    throw new IllegalArgumentException("Unknown LayerType: " + value);
+  }
 
   public abstract int[] getInputSize();
 
