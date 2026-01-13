@@ -2,6 +2,7 @@ package com.portfolio.nn.network;
 
 import java.util.Optional;
 
+import com.portfolio.nn.constants.DataSet;
 import com.portfolio.nn.network.layers.LayerBase;
 import com.portfolio.nn.network.loss.CategoricalCrossEntropy;
 import com.portfolio.nn.network.loss.LossFunction;
@@ -15,9 +16,16 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   private LossFunction lossFunction;
 
-  public ConvolutionalNetwork() {
+  private DataSet trainingData;
+
+  public ConvolutionalNetwork(DataSet trainingData) {
     this.head = Optional.empty();
     this.lossFunction = new CategoricalCrossEntropy();
+    this.trainingData = trainingData;
+  }
+
+  public DataSet getTrainingData(){
+    return trainingData;
   }
 
   public void setLossFunction(LossFunction lossFunction) {
