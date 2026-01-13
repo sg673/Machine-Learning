@@ -1,28 +1,28 @@
-import { useState } from "react";
-import { PAGES } from "../services/constants";
+interface HeaderProps {
+  currentPage: string;
+  onPageChange: (page: string) => void;
+}
 
-export function Header() {
-  const [selectedPage, setSelectedPage] = useState(PAGES.DASHBOARD);
-
+export function Header({ currentPage, onPageChange }: HeaderProps) {
   return (
     <header className="bg-bg-alt border-b border-border p-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-text-col">FFN ML Platform</h1>
         <nav className="flex space-x-6">
-          <div className={selectedPage == PAGES.DASHBOARD ? "border-b-2 border-prim pb-1" : ""}>
-            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => setSelectedPage(PAGES.DASHBOARD)}>Dashboard</a>
+          <div className={currentPage === 'dashboard' ? "border-b-2 border-prim pb-1" : ""}>
+            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => onPageChange('dashboard')}>Dashboard</a>
           </div>
-          <div className={selectedPage == PAGES.MODELS ? "border-b-2 border-prim pb-1" : ""}>
-            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => setSelectedPage(PAGES.MODELS)}>Models</a>
+          <div className={currentPage === 'modelBuilder' ? "border-b-2 border-prim pb-1" : ""}>
+            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => onPageChange('modelBuilder')}>Model Builder</a>
           </div>
-          <div className={selectedPage == PAGES.TRAINING ? "border-b-2 border-prim pb-1" : ""}>
-            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => setSelectedPage(PAGES.TRAINING)}>Training</a>
+          <div className={currentPage === 'models' ? "border-b-2 border-prim pb-1" : ""}>
+            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => onPageChange('models')}>Models</a>
           </div>
-          <div className={selectedPage == PAGES.RESULTS ? "border-b-2 border-prim pb-1" : ""}>
-            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => setSelectedPage(PAGES.RESULTS)}>Results</a>
+          <div className={currentPage === 'training' ? "border-b-2 border-prim pb-1" : ""}>
+            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => onPageChange('training')}>Training</a>
           </div>
-          <div className={selectedPage == PAGES.SETTINGS ? "border-b-2 border-prim pb-1" : ""}>
-            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => setSelectedPage(PAGES.SETTINGS)}>Settings</a>
+          <div className={currentPage === 'results' ? "border-b-2 border-prim pb-1" : ""}>
+            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => onPageChange('results')}>Results</a>
           </div>
         </nav>
       </div>

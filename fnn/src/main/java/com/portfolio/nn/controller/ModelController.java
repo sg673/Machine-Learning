@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.portfolio.nn.model.modelModel;
+import com.portfolio.nn.model.CNNModel;
 import com.portfolio.nn.model.Model;
+import com.portfolio.nn.service.CNNModelService;
 import com.portfolio.nn.service.ModelService;
 
 @RestController
@@ -27,13 +29,16 @@ public class ModelController {
   @Autowired
   private ModelService modelService;
 
+  @Autowired
+  private CNNModelService cnnModelService;
+
   @GetMapping("/models")
   public ResponseEntity<Object> getModels() {
     return ResponseEntity.status(HttpStatus.OK).body(
         modelService.getAllModels());
   }
 
-  // Deprecated 
+  // Deprecated
   @PostMapping(value = "/models", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Object> postModels(@RequestBody modelModel model) {
     return ResponseEntity.ok(model);
@@ -52,6 +57,37 @@ public class ModelController {
   @DeleteMapping("/models/{id}")
   public ResponseEntity<Object> deleteModelById(@PathVariable("id") String id) {
     boolean deleted = modelService.deleteModelById(id);
+    if (deleted) {
+      return ResponseEntity.noContent().build();
+    } else {
+      return ResponseEntity.notFound().build();
+    }
+  }
+
+  @PostMapping(value = "/models/cnn", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<Object> postCNNModel(@RequestBody CNNModel model) {
+    CNNModel savedModel = cnnModelService.saveModel(model);
+    return ResponseEntity.status(HttpStatus.CREATED).body(savedModel);
+  }
+
+  @GetMapping(value = "/models/cnn")
+  public ResponseEntity<Object> getAllCnnModels() {
+    return ResponseEntity.status(HttpStatus.OK).body(cnnModelService.getAll());
+  }
+
+  @GetMapping(value = "/models/cnn/{id}")
+  public ResponseEntity<Object> getCnnModelById(@PathVariable("id") String id) {
+    Optional<CNNModel> model = cnnModelService.getModelById(id);
+    if (model.isPresent()) {
+      return ResponseEntity.status(HttpStatus.OK).body(model.get());
+    } else {
+      return ResponseEntity.notFound().build();
+    }
+  }
+
+  @DeleteMapping(value = "/models/cnn/{id}")
+  public ResponseEntity<Object> deleteCnnModelById(@PathVariable("id") String id) {
+    boolean deleted = cnnModelService.deleteById(id);
     if (deleted) {
       return ResponseEntity.noContent().build();
     } else {

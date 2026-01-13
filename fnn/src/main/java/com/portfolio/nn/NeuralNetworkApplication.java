@@ -20,10 +20,10 @@ import com.portfolio.nn.util.DataUtils;
 @SpringBootApplication
 public class NeuralNetworkApplication {
   public static void main(String[] args) {
-    // SpringApplication.run(NeuralNetworkApplication.class, args);
+    SpringApplication.run(NeuralNetworkApplication.class, args);
 
     // runMNISTDemo();
-    runCNNDemo();
+    // runCNNDemo();
   }
 
   private static void runMNISTDemo() {
@@ -61,27 +61,25 @@ public class NeuralNetworkApplication {
       ConvolutionalNetwork cnn = new ConvolutionalNetwork();
 
       // cnn
-      //     .addLayer(
-      //         new ConvolutionalLayer(8, 3, 1, 0, ActivationFunction.NONE))
-      //     .addLayer(
-      //         new FCLayer(128, ActivationFunction.RELU))
-      //     .addLayer(
-      //         new FCLayer(10, ActivationFunction.SIGMOID));
+      // .addLayer(
+      // new FCLayer(128, ActivationFunction.RELU))
+      // .addLayer(
+      // new FCLayer(10, ActivationFunction.SIGMOID));
 
       cnn.addLayer(
-      new ConvolutionalLayer(32, 3, 1, 0, ActivationFunction.RELU))
-      .addLayer(
-      new ConvolutionalLayer(32, 3, 1, 0, ActivationFunction.RELU))
-      .addLayer(
-      new PoolingLayer(2, 1, PoolingType.MAX))
-      .addLayer(
-      new ConvolutionalLayer(64, 3, 1, 0, ActivationFunction.RELU))
-      .addLayer(
-      new PoolingLayer(2, 1, PoolingType.MAX))
-      .addLayer(
-      new FCLayer(128, ActivationFunction.RELU))
-      .addLayer(
-      new FCLayer(10, ActivationFunction.SIGMOID));
+          new ConvolutionalLayer(32, 3, 1, 0, ActivationFunction.RELU))
+          .addLayer(
+              new ConvolutionalLayer(32, 3, 1, 0, ActivationFunction.RELU))
+          .addLayer(
+              new PoolingLayer(2, 1, PoolingType.MAX))
+          .addLayer(
+              new ConvolutionalLayer(64, 3, 1, 0, ActivationFunction.RELU))
+          .addLayer(
+              new PoolingLayer(2, 1, PoolingType.MAX))
+          .addLayer(
+              new FCLayer(128, ActivationFunction.RELU))
+          .addLayer(
+              new FCLayer(10, ActivationFunction.SIGMOID));
 
       int subsetSize = 60000;
       double[][] trainSubset = new double[subsetSize][];
