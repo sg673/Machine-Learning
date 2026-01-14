@@ -49,7 +49,7 @@ public enum DataSet {
         return type;
       }
     }
-    throw new IllegalArgumentException("Unknown LayerType: " + value);
+    throw new IllegalArgumentException("Unknown Dataset: " + value);
   }
 
   public abstract int[] getInputSize();

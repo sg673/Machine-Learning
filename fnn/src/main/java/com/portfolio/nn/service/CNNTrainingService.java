@@ -20,7 +20,13 @@ public class CNNTrainingService {
 
   public String startTraining(CNNModel model, CNNTrainingParameters params){
     String sessionId = UUID.randomUUID().toString();
-    ConvolutionalNetwork network = new ConvolutionalNetwork(DataSet.fromString(model.trainingData));
+    DataSet dataSet;
+    try{
+      dataSet = DataSet.fromString(model.trainingData);
+    } catch(IllegalArgumentException e){
+      throw new RuntimeException("Invalid dataset specified: " + model.trainingData);
+    }
+    ConvolutionalNetwork network = new ConvolutionalNetwork(dataSet);
     CNNTrainingSession session = new CNNTrainingSession(network, params, model.modelId, sessionId);
     sessions.put(sessionId, session);
     
