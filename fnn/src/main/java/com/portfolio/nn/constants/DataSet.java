@@ -2,6 +2,8 @@ package com.portfolio.nn.constants;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.portfolio.nn.data.DataLoader;
+import com.portfolio.nn.data.MNISTLoader;
 
 public enum DataSet {
   MNIST("MNIST") {
@@ -29,6 +31,14 @@ public enum DataSet {
     public int getTestSize() {
       return 10000;
     }
+
+    private DataLoader loader = new MNISTLoader();
+
+    @Override
+    public DataLoader getDataLoader() {
+      return loader;
+    }
+
   };
 
   private final String value;
@@ -51,6 +61,8 @@ public enum DataSet {
     }
     throw new IllegalArgumentException("Unknown Dataset: " + value);
   }
+
+  public abstract DataLoader getDataLoader();
 
   public abstract int[] getInputSize();
 
