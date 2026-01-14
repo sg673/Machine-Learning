@@ -7,6 +7,16 @@ import com.portfolio.nn.constants.SessionStatus;
 import com.portfolio.nn.network.ConvolutionalNetwork;
 import com.portfolio.nn.repo.ResultRepo;
 
+/**
+ * Represents an active CNN training session with progress tracking and state
+ * management.
+ * 
+ * <p>
+ * Manages the lifecycle of a training session including progress monitoring,
+ * status updates, and result persistence. Each session is uniquely identified
+ * and tracks training metrics such as epochs, batches, and accuracy.
+ * </p>
+ */
 public class CNNTrainingSession {
   private final String sessionId;
   private SessionStatus status;
@@ -21,6 +31,14 @@ public class CNNTrainingSession {
   private final long startTime = System.currentTimeMillis();
   private boolean isRunning;
 
+  /**
+   * Creates a new CNN training session.
+   * 
+   * @param model     the convolutional network to train
+   * @param params    training parameters including epochs and batch size
+   * @param modelId   unique identifier of the model being trained
+   * @param sessionId unique identifier for this training session
+   */
   public CNNTrainingSession(ConvolutionalNetwork model, CNNTrainingParameters params,
       String modelId, String sessionId) {
     initialiseDefaultAttributes();
@@ -33,6 +51,9 @@ public class CNNTrainingSession {
 
   }
 
+  /**
+   * Initializes session attributes to their default values.
+   */
   private void initialiseDefaultAttributes() {
     this.status = SessionStatus.INITIALIZED;
     this.currentEpoch = 0;
@@ -42,16 +63,32 @@ public class CNNTrainingSession {
   }
 
   /**
-   * Save the trained model to Repository with timestamp.
+   * Saves the training session results to the repository.
    * 
-   * @param repo - Repo to save the result to
+   * @param repo the repository to save results to
+   * @return true if save was successful, false if session is still running
    */
 
   public boolean Save(ResultRepo repo) {
-    return Save(repo,null);
+    return Save(repo, null);
   }
 
-  public boolean Save(ResultRepo repo, String errorMessage){
+  /**
+   * Saves the training session results to the repository with optional error
+   * message.
+   * 
+   * <p>
+   * Creates a Result entity with training metrics, timing information, and final
+   * status.
+   * Cannot save while the session is still running.
+   * </p>
+   * 
+   * @param repo         the repository to save results to
+   * @param errorMessage optional error message for failed sessions, null for
+   *                     successful completion
+   * @return true if save was successful, false if session is still running
+   */
+  public boolean Save(ResultRepo repo, String errorMessage) {
     if (this.isRunning)
       return false;
     Result result = new Result();
@@ -71,7 +108,7 @@ public class CNNTrainingSession {
   public ConvolutionalNetwork getNetwork() {
     return this.network;
   }
-  
+
   // Getters
   public int getCurrentBatch() {
     return this.currentBatch;

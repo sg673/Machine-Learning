@@ -27,6 +27,45 @@ public class CNNTrainingService {
 
   private final Map<String, CNNTrainingSession> sessions = new ConcurrentHashMap<>();
 
+  /**
+   * Initiates asynchronous training of a Convolutional Neural Network model.
+   * 
+   * <p>
+   * This method creates a new training session, configures the CNN with the
+   * specified
+   * layers, loads the training dataset, and starts the training process in a
+   * separate thread.
+   * The training progress can be monitored using the returned session ID.
+   * </p>
+   * 
+   * <p>
+   * The training process includes:
+   * </p>
+   * <ul>
+   * <li>Validation and parsing of the dataset specification</li>
+   * <li>Creation of a ConvolutionalNetwork instance</li>
+   * <li>Addition of model layers to the network</li>
+   * <li>Loading and preprocessing of training data (including one-hot encoding of
+   * labels)</li>
+   * <li>Execution of the training algorithm with backpropagation</li>
+   * <li>Automatic session cleanup and result persistence upon completion</li>
+   * </ul>
+   * 
+   * @param model  the CNN model configuration containing layer definitions, model
+   *               ID,
+   *               and training dataset specification
+   * @param params the training parameters including learning rate, number of
+   *               epochs,
+   *               and other hyperparameters
+   * @return a unique session ID string that can be used to monitor training
+   *         progress
+   *         and retrieve results
+   * @throws RuntimeException if the specified dataset is invalid or not supported
+   * 
+   * @see CNNModel
+   * @see CNNTrainingParameters
+   * @see CNNTrainingSession
+   */
   public String startTraining(CNNModel model, CNNTrainingParameters params) {
     String sessionId = UUID.randomUUID().toString();
     DataSet dataSet;
@@ -57,30 +96,40 @@ public class CNNTrainingService {
 
         session.setStatus(SessionStatus.TRAINING);
         session.setRunning(true);
-
+        //TODO implement batches
         network.train(images, labels, params.learningRate, params.epochs);
         trainingEnd(session, SessionStatus.COMPLETED);
       } catch (IOException err) {
         trainingEnd(session, SessionStatus.FAILED, "Dataset Not Recognised");
       }
-
-      /**
-       * Init Layers in model done
-       * load dataset done
-       * start training done
-       * save on completion
-       */
     });
 
     return sessionId;
   }
 
+  /**
+   * Finalizes a training session with successful completion status.
+   * 
+   * @param session the training session to terminate
+   * @param status  the final status of the training session
+   */
   private void trainingEnd(CNNTrainingSession session, SessionStatus status) {
-    session.setRunning(false);
-    session.setStatus(status);
-    session.Save(resultRepo);
-    sessions.remove(session.getSessionId());
+    trainingEnd(session, status, null);
   }
+
+  /**
+   * Finalizes a training session and performs cleanup operations.
+   * 
+   * <p>
+   * This method stops the training session, updates its status, persists
+   * the results to the repository, and removes the session from active sessions.
+   * </p>
+   * 
+   * @param session the training session to terminate
+   * @param status  the final status of the training session
+   * @param error   optional error message if the session failed, null for
+   *                successful completion
+   */
   private void trainingEnd(CNNTrainingSession session, SessionStatus status, String error) {
     session.setRunning(false);
     session.setStatus(status);

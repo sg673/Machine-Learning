@@ -18,9 +18,27 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 
+/**
+ * Entity representing a Convolutional Neural Network model configuration.
+ * 
+ * <p>
+ * This class defines the structure and parameters of a CNN model including
+ * layer definitions, input/output specifications, and training dataset
+ * information.
+ * Models are persisted to the database and can be used for training sessions.
+ * </p>
+ */
 @Entity
 @Table(name = "cnnmodels")
 public class CNNModel {
+  /**
+   * Enumeration of supported CNN layer types.
+   * 
+   * <p>
+   * Each layer type corresponds to a specific neural network layer implementation
+   * and defines the JSON serialization value used in API requests.
+   * </p>
+   */
   public enum LayerType {
     CONV2D("conv2d"),
     MAXPOOL("maxpool"),
@@ -40,6 +58,13 @@ public class CNNModel {
       return value;
     }
 
+    /**
+     * Creates a LayerType from its string representation.
+     * 
+     * @param value the string value to convert
+     * @return the corresponding LayerType
+     * @throws IllegalArgumentException if the value doesn't match any LayerType
+     */
     @JsonCreator
     public static LayerType fromString(String value) {
       for (LayerType type : LayerType.values()) {
@@ -51,6 +76,10 @@ public class CNNModel {
     }
   }
 
+  /**
+   * Represents a 2D position coordinate for layer visualization.
+   * This is used client-side
+   */
   public static class Position {
     public double x;
     public double y;
@@ -64,6 +93,12 @@ public class CNNModel {
     }
   }
 
+  /**
+   * Represents a single layer in the CNN architecture.
+   * 
+   * <p>Contains layer configuration, position information for visualization,
+   * and connection details for building the network graph.</p>
+   */
   public static class Layer {
     public String id;
     public LayerType type;
@@ -71,6 +106,15 @@ public class CNNModel {
     public Map<String, Object> config;
     public List<String> connections;
 
+    /**
+     * Converts this layer configuration to a concrete LayerBase implementation.
+     * 
+     * <p>Creates the appropriate layer instance based on the layer type and
+     * configuration parameters. Used during network construction for training.</p>
+     * 
+     * @return a LayerBase instance configured according to this layer's specifications
+     * @throws IllegalArgumentException if the layer type is not supported or not implemented
+     */
     public LayerBase convertToLayerBase() {
       switch (type) {
         case CONV2D:
