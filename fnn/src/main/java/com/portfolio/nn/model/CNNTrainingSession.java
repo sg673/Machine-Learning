@@ -16,7 +16,6 @@ public class CNNTrainingSession {
   private int totalBatches;
   private double accuracy;
   private final String modelId;
-  @SuppressWarnings("unused")
   private final String trainingData;
   private final ConvolutionalNetwork network;
   private final long startTime = System.currentTimeMillis();
