@@ -48,19 +48,7 @@ public class CNNTrainingSession {
    */
 
   public boolean Save(ResultRepo repo) {
-    if (this.isRunning)
-      return false;
-    Result result = new Result();
-    result.setModelId(this.modelId);
-    result.setSessionId(this.sessionId);
-    result.setFinalAccuracy(this.accuracy);
-    result.setTrainingTime(System.currentTimeMillis() - startTime);
-    result.setEpochs(this.totalEpochs);
-    result.setTotalBatches(this.totalBatches);
-    result.setCompletedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
-    result.setFinalStatus(status);
-    repo.save(result);
-    return true;
+    return Save(repo,null);
   }
 
   public boolean Save(ResultRepo repo, String errorMessage){
