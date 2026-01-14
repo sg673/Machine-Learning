@@ -63,6 +63,23 @@ public class CNNTrainingSession {
     return true;
   }
 
+  public boolean Save(ResultRepo repo, String errorMessage){
+    if (this.isRunning)
+      return false;
+    Result result = new Result();
+    result.setModelId(this.modelId);
+    result.setSessionId(this.sessionId);
+    result.setFinalAccuracy(this.accuracy);
+    result.setTrainingTime(System.currentTimeMillis() - startTime);
+    result.setEpochs(this.totalEpochs);
+    result.setTotalBatches(this.totalBatches);
+    result.setCompletedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+    result.setFinalStatus(status);
+    result.setErrorMessage(errorMessage);
+    repo.save(result);
+    return true;
+  }
+
   public ConvolutionalNetwork getNetwork() {
     return this.network;
   }

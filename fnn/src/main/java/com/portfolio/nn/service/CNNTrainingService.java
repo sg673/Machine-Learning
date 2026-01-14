@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.h2.engine.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +46,7 @@ public class CNNTrainingService {
               layer.convertToLayerBase());
         }
       } catch (IllegalArgumentException err) {
-        trainingEnd(session, SessionStatus.FAILED);
+        trainingEnd(session, SessionStatus.FAILED, "LayerType not Recognised");
       }
 
       DataLoader loader = dataSet.getDataLoader();
@@ -62,7 +61,7 @@ public class CNNTrainingService {
         network.train(images, labels, params.learningRate, params.epochs);
         trainingEnd(session, SessionStatus.COMPLETED);
       } catch (IOException err) {
-        trainingEnd(session, SessionStatus.FAILED);
+        trainingEnd(session, SessionStatus.FAILED, "Dataset Not Recognised");
       }
 
       /**
@@ -80,6 +79,12 @@ public class CNNTrainingService {
     session.setRunning(false);
     session.setStatus(status);
     session.Save(resultRepo);
+    sessions.remove(session.getSessionId());
+  }
+  private void trainingEnd(CNNTrainingSession session, SessionStatus status, String error) {
+    session.setRunning(false);
+    session.setStatus(status);
+    session.Save(resultRepo, error);
     sessions.remove(session.getSessionId());
   }
 
