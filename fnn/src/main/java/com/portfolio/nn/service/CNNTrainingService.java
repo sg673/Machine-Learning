@@ -1,6 +1,7 @@
 package com.portfolio.nn.service;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +27,18 @@ public class CNNTrainingService {
   private ResultRepo resultRepo;
 
   private final Map<String, CNNTrainingSession> sessions = new ConcurrentHashMap<>();
+
+  /**
+   * LRU cache for recently finished training sessions with capacity limit of 16.
+   * Automatically evicts oldest entries when capacity is exceeded.
+   */
+  private final Map<String, CNNTrainingSession> sessionCache = new LinkedHashMap<String, CNNTrainingSession>(16, 0.75f,
+      true) {
+    @Override
+    protected boolean removeEldestEntry(Map.Entry<String, CNNTrainingSession> eldest) {
+      return this.size() > 16;
+    }
+  };
 
   /**
    * Initiates asynchronous training of a Convolutional Neural Network model.
@@ -135,17 +148,22 @@ public class CNNTrainingService {
     session.setStatus(status);
     session.Save(resultRepo, error);
     sessions.remove(session.getSessionId());
+    sessionCache.put(session.getSessionId(), session);
   }
 
   /**
-   * Retrieves an active training session by its ID.
-   * If a session has been removed, it means the training has ended 
+   * Retrieves an active or recently finished training session by its ID.
+   * 
    * 
    * @param sessionId the unique identifier of the training session
    * @return the CNNTrainingSession if found, null otherwise
    */
   public CNNTrainingSession getSession(String sessionId) {
-    return sessions.get(sessionId);
+    if (sessions.containsKey(sessionId)) {
+      return sessions.get(sessionId);
+    } else {
+      return sessionCache.get(sessionId);
+    }
   }
 
   /**
