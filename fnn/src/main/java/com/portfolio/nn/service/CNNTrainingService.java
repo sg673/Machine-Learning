@@ -137,4 +137,17 @@ public class CNNTrainingService {
     sessions.remove(session.getSessionId());
   }
 
+  public CNNTrainingSession getSession(String sessionId){
+    return sessions.get(sessionId);
+  }
+
+  public boolean stopSession(String sessionId){
+    CNNTrainingSession session = getSession(sessionId);
+    if (session != null && session.isRunning()) {
+      trainingEnd(session, SessionStatus.STOPPED);
+      return true;
+    }
+    return false;
+  }
+
 }
