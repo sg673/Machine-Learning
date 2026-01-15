@@ -96,7 +96,7 @@ public class CNNTrainingService {
 
         session.setStatus(SessionStatus.TRAINING);
         session.setRunning(true);
-        //TODO implement batches
+        // TODO implement batches
         network.train(images, labels, params.learningRate, params.epochs);
         trainingEnd(session, SessionStatus.COMPLETED);
       } catch (IOException err) {
@@ -137,11 +137,31 @@ public class CNNTrainingService {
     sessions.remove(session.getSessionId());
   }
 
-  public CNNTrainingSession getSession(String sessionId){
+  /**
+   * Retrieves an active training session by its ID.
+   * If a session has been removed, it means the training has ended 
+   * 
+   * @param sessionId the unique identifier of the training session
+   * @return the CNNTrainingSession if found, null otherwise
+   */
+  public CNNTrainingSession getSession(String sessionId) {
     return sessions.get(sessionId);
   }
 
-  public boolean stopSession(String sessionId){
+  /**
+   * Stops an active training session.
+   * 
+   * <p>
+   * Terminates the training process if the session exists and is currently
+   * running.
+   * The session will be marked as stopped and cleaned up automatically.
+   * </p>
+   * 
+   * @param sessionId the unique identifier of the training session to stop
+   * @return true if the session was successfully stopped, false if session
+   *         doesn't exist or isn't running
+   */
+  public boolean stopSession(String sessionId) {
     CNNTrainingSession session = getSession(sessionId);
     if (session != null && session.isRunning()) {
       trainingEnd(session, SessionStatus.STOPPED);
