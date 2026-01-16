@@ -58,6 +58,13 @@ public class CNNTrainingController {
 
   }
 
+  /**
+   * Retrieves the current status of a CNN training session.
+   * 
+   * @param sessionId the unique identifier of the training session
+   * @return ResponseEntity containing the session details (200 OK) or error
+   *         message (404 Not Found)
+   */
   @GetMapping("/{id}/status")
   public ResponseEntity<Object> getCNNStatusById(@PathVariable("id") String sessionId) {
     CNNTrainingSession session = trainingService.getSession(sessionId);
@@ -67,6 +74,13 @@ public class CNNTrainingController {
     return ResponseEntity.ok(session);
   }
 
+  /**
+   * Stops an active CNN training session.
+   * 
+   * @param sessionId the unique identifier of the training session to stop
+   * @return ResponseEntity with success message (200 OK) or error message (404
+   *         Not Found)
+   */
   @PostMapping("/{id}/stop")
   public ResponseEntity<Object> stopCNNTrainingById(@PathVariable("id") String sessionId) {
     boolean stopped = trainingService.stopSession(sessionId);
