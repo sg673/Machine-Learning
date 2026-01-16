@@ -71,6 +71,7 @@ export const trainingApi = {
 export const resultsApi = {
   getAll: () => getJson<Result>("results"),
   getById: (id: string) => getJson<Result>(`results/${id}`),
+  deleteById: (id: string) => apiClient.delete(`results/${id}`).then(res => res.json()),
 }
 
 export const cnnModelApi = {
@@ -84,7 +85,7 @@ export const cnnModelApi = {
 export const cnnTrainingApi = {
   start: (modelId: string, params: cnnTrainingParameters) =>
     apiClient.post(`training/cnn/${modelId}/start`, params).then(res => res.json),
-  status: (id: string) => 
+  status: (id: string) =>
     getJson<Training>(`training/cnn/${id}/status`),
   stop: (id: string) =>
     apiClient.post(`training/cnn/${id}/stop`, {}).then(res => res.json()),
