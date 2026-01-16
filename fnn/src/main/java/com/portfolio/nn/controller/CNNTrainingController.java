@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.portfolio.nn.model.CNNModel;
 import com.portfolio.nn.model.CNNTrainingParameters;
+import com.portfolio.nn.model.CNNTrainingSession;
 import com.portfolio.nn.service.CNNModelService;
 import com.portfolio.nn.service.CNNTrainingService;
 
@@ -59,11 +60,19 @@ public class CNNTrainingController {
 
   @GetMapping("/{id}/status")
   public ResponseEntity<Object> getCNNStatusById(@PathVariable("id") String sessionId) {
-    return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    CNNTrainingSession session = trainingService.getSession(sessionId);
+    if (session == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Session with ID " + sessionId + " not found.");
+    }
+    return ResponseEntity.ok(session);
   }
 
   @PostMapping("/{id}/stop")
   public ResponseEntity<Object> stopCNNTrainingById(@PathVariable("id") String sessionId) {
-    return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    boolean stopped = trainingService.stopSession(sessionId);
+    if (!stopped) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Session with ID " + sessionId + " not found.");
+    }
+    return ResponseEntity.ok("Session with ID " + sessionId + " stopped.");
   }
 }
