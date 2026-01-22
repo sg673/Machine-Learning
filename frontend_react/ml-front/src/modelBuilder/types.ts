@@ -16,11 +16,13 @@ export interface Layer {
 }
 
 export interface CNNModel {
+  id: string;
   name: string;
   layers: Layer[];
   inputShape: [number, number, number];
   outputSize: number;
   trainingData: string;
+  timeCreated: string;
 }
 
 export interface LayerConfig {

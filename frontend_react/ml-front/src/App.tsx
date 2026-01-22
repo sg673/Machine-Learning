@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Header } from './components/Header';
 import { Dashboard } from './dashboard/dashboard';
 import { ModelBuilder } from './modelBuilder';
+import { ModelView } from './modelView/modelView';
 
-type Page = 'dashboard' | 'modelBuilder';
+type Page = 'dashboard' | 'modelBuilder' | 'modelView';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -13,6 +14,7 @@ function App() {
       <Header currentPage={currentPage} onPageChange={(page) => setCurrentPage(page as Page)} />
       {currentPage === 'dashboard' && <Dashboard />}
       {currentPage === 'modelBuilder' && <ModelBuilder />}
+      {currentPage === 'modelView' && <ModelView />}
     </div>
   )
 }
