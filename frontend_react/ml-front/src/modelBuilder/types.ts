@@ -16,7 +16,7 @@ export interface Layer {
 }
 
 export interface CNNModel {
-  id: string;
+  modelId: string;
   name: string;
   layers: Layer[];
   inputShape: [number, number, number];

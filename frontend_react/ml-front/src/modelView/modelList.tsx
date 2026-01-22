@@ -18,7 +18,7 @@ export function ModelList() {
   }, []);
 
   function getRelativeTime(timeCreated: string): string {
-    if(timeCreated == null) return 'N/A';
+    if (timeCreated == null) return 'N/A';
     const now = new Date();
     const created = new Date(timeCreated);
     const diffMs = now.getTime() - created.getTime();
@@ -44,7 +44,9 @@ export function ModelList() {
           <p className="text-text-col-alt text-center py-8">No models found</p>
         ) : (
           paginatedModels.map((model) => (
-            <div key={model.id} className="card-xs hover:bg-bg transition-colors cursor-pointer">
+            <div key={model.modelId} className="card-xs hover:bg-bg transition-colors cursor-pointer"
+              onClick={() => console.log(`Model ${model.modelId} clicked`)}
+            >
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-semibold text-text-col truncate">{model.name}</h4>
                 <div className="flex gap-2">
@@ -74,7 +76,7 @@ export function ModelList() {
             disabled={currentPage === 1}
           >
             <span className="text-text-col">
-              <img src={ArrowLeft} alt="Prev" className="w-4 h-4 filter brightness-0 invert"/>
+              <img src={ArrowLeft} alt="Prev" className="w-4 h-4 filter brightness-0 invert" />
             </span>
           </button>
           <span className="px-3 py-1 text-xs bg-bg border border-border rounded text-text-col-alt">
@@ -86,7 +88,7 @@ export function ModelList() {
             disabled={currentPage === totalPages}
           >
             <span className="text-text-col">
-            <img src={ArrowRight} alt="Next" className="w-4 h-4 filter brightness-0 invert"/>
+              <img src={ArrowRight} alt="Next" className="w-4 h-4 filter brightness-0 invert" />
 
             </span>
           </button>
