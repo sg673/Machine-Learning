@@ -62,7 +62,15 @@ export function ModelList() {
               <div className="flex gap-2 justify-end">
                 <button className="px-3 py-1 text-xs bg-sec text-text-col-alt rounded hover:bg-sec-hover">Edit</button>
                 <button className="px-3 py-1 text-xs bg-acc text-text-col-alt rounded hover:bg-acc-hover">Train</button>
-                <button className="px-3 py-1 text-xs bg-prim text-text-col-alt rounded hover:bg-prim-hover">Delete</button>
+                <button
+                  className="px-3 py-1 text-xs bg-prim text-text-col-alt rounded hover:bg-prim-hover"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    cnnModelApi.delete(model.modelId);
+                    setModels(models.filter(m => m.modelId !== model.modelId));
+                  }}
+                >
+                  Delete</button>
               </div>
             </div>
           ))
