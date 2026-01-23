@@ -37,13 +37,13 @@
 
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-full bg-prim text-text-col-alt font-semibold hover:bg-prim-hover hover:scale-105 transition;
+    @apply px-4 py-2 rounded-xl bg-prim text-text-col-alt font-semibold hover:bg-prim-hover hover:scale-105 transition;
   }
   .btn-sec {
-    @apply px-4 py-2 rounded-full bg-sec text-text-col-alt font-semibold hover:bg-sec-hover hover:scale-105 transition;
+    @apply px-4 py-2 rounded-xl bg-sec text-text-col-alt font-semibold hover:bg-sec-hover hover:scale-105 transition;
   }
   .btn-acc {
-    @apply px-4 py-2 rounded-full bg-acc text-text-col-alt font-semibold hover:bg-acc-hover hover:scale-105 transition;
+    @apply px-4 py-2 rounded-xl bg-acc text-text-col-alt font-semibold hover:bg-acc-hover hover:scale-105 transition;
   }
   .card {
     @apply bg-bg-alt border border-border rounded p-8 shadow-md;
