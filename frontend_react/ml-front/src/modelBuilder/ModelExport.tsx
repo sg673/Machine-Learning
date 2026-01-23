@@ -85,7 +85,7 @@ export function ModelExport({ model, onExport }: ModelExportProps) {
             disabled={isExporting || model.layers.length === 0}
             className="w-full btn disabled:opacity-50"
           >
-            {isExporting ? 'Exporting...' : 'Export to Backend'}
+            {isExporting ? 'Saving...' : 'Save'}
           </button>
 
           <button
