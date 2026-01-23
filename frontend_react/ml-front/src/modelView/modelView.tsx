@@ -28,14 +28,19 @@ export function ModelView() {
 
   return (
     <div className="h-screen grid grid-cols-4 bg-bg">
-      <ModelList 
-      onSelectModel={handleSelectModel}
-      onEditModel={handleEditModel}
-      onDeleteModel={handleDeleteModel}
-      onTrainModel={handleTrainModel}
+      <ModelList
+        onSelectModel={handleSelectModel}
+        onEditModel={handleEditModel}
+        onDeleteModel={handleDeleteModel}
+        onTrainModel={handleTrainModel}
       />
-      <ModelPreview model={selectedModel}/>
-      <ModelProperties />
+      <ModelPreview model={selectedModel} />
+      <ModelProperties
+        model={selectedModel}
+        onEditModel={handleEditModel}
+        onDeleteModel={handleDeleteModel}
+        onTrainModel={handleTrainModel}
+      />
     </div>
   );
 }
