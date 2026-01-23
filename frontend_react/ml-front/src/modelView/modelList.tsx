@@ -6,9 +6,12 @@ import ArrowRight from "../assets/arrow-sm-right.svg";
 
 interface ModelListProps {
   onSelectModel: (model: CNNModel) => void;
+  onEditModel: () => void;
+  onDeleteModel: (modelId: string) => void;
+  onTrainModel: (modelId: string) => void;
 }
 
-export function ModelList({onSelectModel}:ModelListProps) {
+export function ModelList({ onSelectModel, onEditModel, onDeleteModel, onTrainModel }: ModelListProps) {
   const [models, setModels] = useState<CNNModel[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 6;
@@ -64,13 +67,25 @@ export function ModelList({onSelectModel}:ModelListProps) {
               </div>
               <p className="text-sm text-text-col-alt">created: {getRelativeTime(model.timeCreated)}</p>
               <div className="flex gap-2 justify-end">
-                <button className="px-3 py-1 text-xs bg-sec text-text-col-alt rounded hover:bg-sec-hover">Edit</button>
-                <button className="px-3 py-1 text-xs bg-acc text-text-col-alt rounded hover:bg-acc-hover">Train</button>
+                <button className="px-3 py-1 text-xs bg-sec text-text-col-alt rounded hover:bg-sec-hover"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditModel();
+                  }}
+                >
+                  Edit</button>
+                <button className="px-3 py-1 text-xs bg-acc text-text-col-alt rounded hover:bg-acc-hover"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTrainModel(model.modelId);
+                  }}
+                >
+                  Train</button>
                 <button
                   className="px-3 py-1 text-xs bg-prim text-text-col-alt rounded hover:bg-prim-hover"
                   onClick={(e) => {
                     e.stopPropagation();
-                    cnnModelApi.delete(model.modelId);
+                    { onDeleteModel(model.modelId) }
                     setModels(models.filter(m => m.modelId !== model.modelId));
                   }}
                 >
