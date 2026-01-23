@@ -4,7 +4,11 @@ import { cnnModelApi } from "../services/api";
 import ArrowLeft from "../assets/arrow-sm-left.svg";
 import ArrowRight from "../assets/arrow-sm-right.svg";
 
-export function ModelList() {
+interface ModelListProps {
+  onSelectModel: (model: CNNModel) => void;
+}
+
+export function ModelList({onSelectModel}:ModelListProps) {
   const [models, setModels] = useState<CNNModel[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 6;
@@ -37,7 +41,7 @@ export function ModelList() {
   const paginatedModels = models.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="w-120 bg-bg-alt border-r border-border p-6 flex flex-col">
+    <div className="bg-bg-alt border-r border-border p-6 flex flex-col">
       <h3 className="text-xl font-bold mb-6 text-text-col">Models</h3>
       <div className="space-y-3 flex-1">
         {models.length === 0 ? (
@@ -45,7 +49,7 @@ export function ModelList() {
         ) : (
           paginatedModels.map((model) => (
             <div key={model.modelId} className="card-xs hover:bg-bg transition-colors cursor-pointer"
-              onClick={() => console.log(`Model ${model.modelId} clicked`)}
+              onClick={() => onSelectModel(model)}
             >
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-semibold text-text-col truncate">{model.name}</h4>
