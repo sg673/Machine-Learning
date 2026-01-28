@@ -9,12 +9,16 @@ type Page = 'dashboard' | 'modelBuilder' | 'modelView';
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
 
+  const handlePageChange = (page: string) => {
+    console.log(page)
+    setCurrentPage(page as Page);
+  }
   return (
     <div className="flex h-screen flex-col bg-bg">
-      <Header currentPage={currentPage} onPageChange={(page) => setCurrentPage(page as Page)} />
+      <Header currentPage={currentPage} onPageChange={handlePageChange} />
       {currentPage === 'dashboard' && <Dashboard />}
       {currentPage === 'modelBuilder' && <ModelBuilder />}
-      {currentPage === 'modelView' && <ModelView />}
+      {currentPage === 'modelView' && <ModelView onPageChange={handlePageChange}/>}
     </div>
   )
 }

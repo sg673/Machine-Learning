@@ -6,8 +6,11 @@ import type { CNNModel } from "../modelBuilder/types";
 import { cnnModelApi } from "../services/api";
 import { ModelBuilder } from "../modelBuilder";
 
+interface ModelViewProps {
+  onPageChange?: (page: string) => void;
+}
 
-export function ModelView() {
+export function ModelView({ onPageChange }: ModelViewProps) {
   const [selectedModel, setSelectedModel] = useState<CNNModel | null>(null);
   const [editingModel, setEditingModel] = useState<CNNModel | null>(null);
 
@@ -18,9 +21,10 @@ export function ModelView() {
   const handleEditModel = (model: CNNModel) => {
     setEditingModel(model);
   };
-
+  
   const handleModelSaved = () => {
     setEditingModel(null);
+    onPageChange?.("modelBuilder");
     // Refresh model list if needed
   };
 
@@ -36,7 +40,7 @@ export function ModelView() {
     // Implement train model functionality
   };
 
-  if(editingModel) {
+  if (editingModel) {
     return (
       <ModelBuilder
         existingModel={editingModel}
