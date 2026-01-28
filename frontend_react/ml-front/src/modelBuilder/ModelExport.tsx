@@ -4,10 +4,11 @@ import { cnnModelApi } from '../services/api';
 
 interface ModelExportProps {
   model: CNNModel;
+  isEditing?: boolean;
   onExport: (model: CNNModel) => void;
 }
 
-export function ModelExport({ model, onExport }: ModelExportProps) {
+export function ModelExport({ model, isEditing = false, onExport }: ModelExportProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState<string>('');
 
@@ -18,11 +19,17 @@ export function ModelExport({ model, onExport }: ModelExportProps) {
     }
 
     setIsExporting(true);
-    setExportStatus('Exporting model...');
+    setExportStatus(isEditing ? "Updating model..." : "Saving model...");
 
     try {
-      await cnnModelApi.create(model);
-      setExportStatus('Model exported successfully!');
+      if (isEditing && model.modelId) {
+        await cnnModelApi.update(model.modelId, model);
+        setExportStatus('Model updated successfully!');
+      }
+      else {
+        await cnnModelApi.create(model);
+        setExportStatus('Model exported successfully!');
+      }
       onExport(model);
     } catch (error) {
       setExportStatus('Export failed: ' + (error as Error).message);
@@ -85,7 +92,7 @@ export function ModelExport({ model, onExport }: ModelExportProps) {
             disabled={isExporting || model.layers.length === 0}
             className="w-full btn disabled:opacity-50"
           >
-            {isExporting ? 'Saving...' : 'Save'}
+            {isExporting ? (isEditing ? 'Updating...' : 'Saving...') : (isEditing ? 'Update' : 'Save')}
           </button>
 
           <button
@@ -98,13 +105,12 @@ export function ModelExport({ model, onExport }: ModelExportProps) {
         </div>
 
         {exportStatus && (
-          <div className={`text-sm p-2 rounded ${
-            exportStatus.includes('success') 
-              ? 'bg-green-100 text-green-800' 
-              : exportStatus.includes('failed')
+          <div className={`text-sm p-2 rounded ${exportStatus.includes('success')
+            ? 'bg-green-100 text-green-800'
+            : exportStatus.includes('failed')
               ? 'bg-red-100 text-red-800'
               : 'bg-blue-100 text-blue-800'
-          }`}>
+            }`}>
             {exportStatus}
           </div>
         )}

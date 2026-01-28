@@ -6,7 +6,7 @@ import ArrowRight from "../assets/arrow-sm-right.svg";
 
 interface ModelListProps {
   onSelectModel: (model: CNNModel) => void;
-  onEditModel: () => void;
+  onEditModel: (model: CNNModel) => void;
   onDeleteModel: (modelId: string) => void;
   onTrainModel: (modelId: string) => void;
 }
@@ -65,19 +65,19 @@ export function ModelList({ onSelectModel, onEditModel, onDeleteModel, onTrainMo
                   </span>
                 </div>
               </div>
-              <p className="text-sm text-text-col-alt">created: {getRelativeTime(model.timeCreated)}</p>
+              <p className="text-sm text-text-col-alt">created: {getRelativeTime(model.timeCreated ? model.timeCreated : "")}</p>
               <div className="flex gap-2 justify-end">
                 <button className="px-3 py-1 text-xs bg-sec text-text-col-alt rounded hover:bg-sec-hover"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEditModel();
+                    onEditModel(model);
                   }}
                 >
                   Edit</button>
                 <button className="px-3 py-1 text-xs bg-acc text-text-col-alt rounded hover:bg-acc-hover"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onTrainModel(model.modelId);
+                    onTrainModel(model.modelId ? model.modelId : "");
                   }}
                 >
                   Train</button>
@@ -85,7 +85,7 @@ export function ModelList({ onSelectModel, onEditModel, onDeleteModel, onTrainMo
                   className="px-3 py-1 text-xs bg-prim text-text-col-alt rounded hover:bg-prim-hover"
                   onClick={(e) => {
                     e.stopPropagation();
-                    { onDeleteModel(model.modelId) }
+                    { onDeleteModel(model.modelId ? model.modelId : "") }
                     setModels(models.filter(m => m.modelId !== model.modelId));
                   }}
                 >

@@ -4,27 +4,46 @@ import { ModelPreview } from "./modelPreview";
 import { ModelProperties } from "./modelProperties";
 import type { CNNModel } from "../modelBuilder/types";
 import { cnnModelApi } from "../services/api";
+import { ModelBuilder } from "../modelBuilder";
 
 
 export function ModelView() {
   const [selectedModel, setSelectedModel] = useState<CNNModel | null>(null);
+  const [editingModel, setEditingModel] = useState<CNNModel | null>(null);
 
   const handleSelectModel = (model: CNNModel) => {
     setSelectedModel(model);
   };
 
-  const handleEditModel = () => {
-    // Implement edit model functionality
+  const handleEditModel = (model: CNNModel) => {
+    setEditingModel(model);
+  };
+
+  const handleModelSaved = () => {
+    setEditingModel(null);
+    // Refresh model list if needed
   };
 
   const handleDeleteModel = (modelId: string) => {
     cnnModelApi.delete(modelId);
+    if (selectedModel?.modelId === modelId) {
+      setSelectedModel(null);
+    }
     // Implement handler logic
   };
 
   const handleTrainModel = (modelId: string) => {
     // Implement train model functionality
   };
+
+  if(editingModel) {
+    return (
+      <ModelBuilder
+        existingModel={editingModel}
+        onModelSaved={handleModelSaved}
+      />
+    )
+  }
 
   return (
     <div className="h-screen grid grid-cols-4 bg-bg">
@@ -37,7 +56,7 @@ export function ModelView() {
       <ModelPreview model={selectedModel} />
       <ModelProperties
         model={selectedModel}
-        onEditModel={handleEditModel}
+        onEditModel={() => selectedModel && handleEditModel(selectedModel)}
         onDeleteModel={handleDeleteModel}
         onTrainModel={handleTrainModel}
       />

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { LayerPalette } from './LayerPalette';
 import { CanvasArea } from './CanvasArea';
 import { LayerProperties } from './LayerProperties';
@@ -6,13 +6,28 @@ import { ModelExport } from './ModelExport';
 import type { Layer, LayerType, CNNModel } from './types';
 import { DATASET_CONFIG } from '../services/constants';
 
-export function ModelBuilder() {
+interface ModelBuilderProps {
+  existingModel?: CNNModel;
+  onModelSaved?: (model: CNNModel) => void;
+}
+
+export function ModelBuilder({ existingModel, onModelSaved }: ModelBuilderProps = {}) {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [selectedLayer, setSelectedLayer] = useState<Layer | null>(null);
   const [draggedLayer, setDraggedLayer] = useState<LayerType | null>(null);
   const [modelName, setModelName] = useState('');
   const [selectedDataset, setSelectedDataset] = useState<keyof typeof DATASET_CONFIG>("MNIST");
+  const [modelId, setModelId] = useState<string | undefined>(existingModel?.modelId);
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (existingModel) {
+      setLayers(existingModel.layers);
+      setModelName(existingModel.name);
+      setModelId(existingModel.modelId);
+      setSelectedDataset(existingModel.trainingData as keyof typeof DATASET_CONFIG);
+    }
+  }, [existingModel]);
 
   const addLayer = useCallback((layerType: LayerType, position: { x: number; y: number }) => {
     const newLayer: Layer = {
@@ -51,13 +66,14 @@ export function ModelBuilder() {
   const buildModel = useCallback((): CNNModel => {
     const sortedLayers = topologicalSort(layers);
     return {
+      modelId: modelId,
       name: modelName || 'Untitled Model',
       layers: sortedLayers,
       inputShape: DATASET_CONFIG[selectedDataset].inputShape,
       outputSize: getOutputSize(sortedLayers[sortedLayers.length - 1]),
       trainingData: selectedDataset // TODO Placeholder, can be dynamic
     };
-  }, [layers, modelName, selectedDataset]);
+  }, [layers, modelName, selectedDataset, modelId]);
 
   return (
     <div className="h-screen flex bg-bg">
@@ -89,7 +105,9 @@ export function ModelBuilder() {
               ))}
             </select>
           </div>
-
+          {existingModel && (
+            <span className="text-text-col-alt text-sm">Editing Model</span>
+          )}
         </div>
 
         <CanvasArea
@@ -116,7 +134,8 @@ export function ModelBuilder() {
         ) : (
           <ModelExport
             model={buildModel()}
-            onExport={(model) => console.log('Export model:', model)}
+            isEditing={!!existingModel}
+            onExport={onModelSaved || ((model) => console.log("Export model:",model))}
           />
         )}
       </div>
