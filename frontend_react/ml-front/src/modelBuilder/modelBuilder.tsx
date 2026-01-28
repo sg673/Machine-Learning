@@ -11,7 +11,7 @@ export function ModelBuilder() {
   const [selectedLayer, setSelectedLayer] = useState<Layer | null>(null);
   const [draggedLayer, setDraggedLayer] = useState<LayerType | null>(null);
   const [modelName, setModelName] = useState('');
-  const [selectedDataset, setSelectedDataset] = useState<string>("MNIST");
+  const [selectedDataset, setSelectedDataset] = useState<keyof typeof DATASET_CONFIG>("MNIST");
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const addLayer = useCallback((layerType: LayerType, position: { x: number; y: number }) => {
@@ -53,11 +53,11 @@ export function ModelBuilder() {
     return {
       name: modelName || 'Untitled Model',
       layers: sortedLayers,
-      inputShape: getInputShape(sortedLayers[0]),
+      inputShape: DATASET_CONFIG[selectedDataset].inputShape,
       outputSize: getOutputSize(sortedLayers[sortedLayers.length - 1]),
-      trainingData: 'MNIST' // TODO Placeholder, can be dynamic
+      trainingData: selectedDataset // TODO Placeholder, can be dynamic
     };
-  }, [layers, modelName]);
+  }, [layers, modelName, selectedDataset]);
 
   return (
     <div className="h-screen flex bg-bg">
@@ -81,7 +81,7 @@ export function ModelBuilder() {
             </label>
             <select
               value={selectedDataset}
-              onChange={(e) => setSelectedDataset(e.target.value)}
+              onChange={(e) => setSelectedDataset(e.target.value as keyof typeof DATASET_CONFIG)}
               className="px-3 py-2 bg-bg border border-border rounded text-text-col ml-4"
             >
               {Object.keys(DATASET_CONFIG).map(dataset => (
@@ -161,11 +161,6 @@ function topologicalSort(layers: Layer[]): Layer[] {
 
   layers.forEach(layer => visit(layer));
   return result;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getInputShape(_layer?: Layer): [number, number, number] {
-  return [28, 28, 1]; // Default MNIST shape
 }
 
 function getOutputSize(layer?: Layer): number {
