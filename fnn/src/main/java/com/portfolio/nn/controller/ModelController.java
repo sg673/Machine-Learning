@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.portfolio.nn.model.modelModel;
@@ -80,6 +82,22 @@ public class ModelController {
     Optional<CNNModel> model = cnnModelService.getModelById(id);
     if (model.isPresent()) {
       return ResponseEntity.status(HttpStatus.OK).body(model.get());
+    } else {
+      return ResponseEntity.notFound().build();
+    }
+  }
+
+  @PutMapping(value = "/models/cnn/{id}")
+  public ResponseEntity<Object> updateModelById(@PathVariable("id") String id, @RequestParam CNNModel model){
+    Optional<CNNModel> existingModel = cnnModelService.getModelById(id);
+    if(existingModel.isPresent()){
+      boolean updatedModel = cnnModelService.updateModel(id, model);
+      if(updatedModel){
+        return ResponseEntity.status(HttpStatus.OK).build();
+      }
+      else{
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+      }
     } else {
       return ResponseEntity.notFound().build();
     }

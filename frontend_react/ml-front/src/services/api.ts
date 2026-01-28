@@ -78,6 +78,7 @@ export const cnnModelApi = {
   create: (model: CNNModel) => apiClient.post(`models/cnn`, model).then(res => res.json()),
   getAll: () => getJson<CNNModel[]>(`models/cnn`),
   getById: (id: string) => getJson<CNNModel>(`models/cnn/${id}`),
+  update: (id: string, model: CNNModel) => apiClient.put(`models/cnn/${id}`, model).then(res => res.json()),
   delete: (id: string) => apiClient.delete(`models/cnn/${id}`),
 
 }
