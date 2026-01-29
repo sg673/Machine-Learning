@@ -45,7 +45,7 @@ public class CNNTrainingController {
    * @return ResponseEntity containing the session ID (201 Created) or error
    *         message (404 Not Found)
    */
-  @PostMapping(name = "/{id}/start", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value = "/{id}/start", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Object> startTrainingById(@PathVariable("id") String modelId,
       @RequestBody CNNTrainingParameters params) {
 
