@@ -85,7 +85,7 @@ export const cnnModelApi = {
 
 export const cnnTrainingApi = {
   start: (modelId: string, params: cnnTrainingParameters) =>
-    apiClient.post(`training/cnn/${modelId}/start`, params).then(res => res.json),
+    apiClient.post(`training/cnn/${modelId}/start`, params).then(res => res.json()),
   status: (id: string) =>
     getJson<Training>(`training/cnn/${id}/status`),
   stop: (id: string) =>
