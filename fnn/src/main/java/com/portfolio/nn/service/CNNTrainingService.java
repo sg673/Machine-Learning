@@ -92,6 +92,7 @@ public class CNNTrainingService {
     sessions.put(sessionId, session);
 
     new Thread(() -> {
+      System.out.println(sessionId + "started");
       try {
         for (Layer layer : model.layers) {
           network.addLayer(
@@ -115,7 +116,7 @@ public class CNNTrainingService {
       } catch (IOException err) {
         trainingEnd(session, SessionStatus.FAILED, "Dataset Not Recognised");
       }
-    });
+    }).start();
 
     return sessionId;
   }
