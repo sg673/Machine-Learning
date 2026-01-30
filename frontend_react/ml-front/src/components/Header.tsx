@@ -18,8 +18,8 @@ export function Header({ currentPage, onPageChange }: HeaderProps) {
           <div className={currentPage === 'modelView' ? "border-b-2 border-prim pb-1" : ""}>
             <a href="#" className="text-acc hover:text-acc-hover" onClick={() => onPageChange('modelView')}>Models</a>
           </div>
-          <div className={currentPage === 'training' ? "border-b-2 border-prim pb-1" : ""}>
-            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => onPageChange('training')}>Training</a>
+          <div className={currentPage === 'modelTrainer' ? "border-b-2 border-prim pb-1" : ""}>
+            <a href="#" className="text-acc hover:text-acc-hover" onClick={() => onPageChange('modelTrainer')}>Training</a>
           </div>
           <div className={currentPage === 'results' ? "border-b-2 border-prim pb-1" : ""}>
             <a href="#" className="text-acc hover:text-acc-hover" onClick={() => onPageChange('results')}>Results</a>

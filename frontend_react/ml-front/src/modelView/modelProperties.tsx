@@ -7,9 +7,10 @@ interface ModelPropertiesProps {
   onEditModel: () => void;
   onDeleteModel: (modelId: string) => void;
   onTrainModel: (modelId: string) => void;
+  showButtons?: boolean;
 }
 
-export function ModelProperties({ model, onEditModel, onDeleteModel, onTrainModel }: ModelPropertiesProps) {
+export function ModelProperties({ model, onEditModel, onDeleteModel, onTrainModel, showButtons=true }: ModelPropertiesProps) {
   const [expandedLayers, setExpandedLayers] = useState<Set<string>>(new Set());
 
   const toggleLayer = (layerId: string) => {
@@ -96,26 +97,29 @@ export function ModelProperties({ model, onEditModel, onDeleteModel, onTrainMode
       </div>
 
       {/* Action Buttons - Fixed at bottom */}
-      <div className="p-6 pt-0 space-y-3">
-        <button
-          onClick={onEditModel}
-          className="w-full btn-sec"
-        >
-          Edit Model
-        </button>
-        <button
-          onClick={() => onTrainModel(model.name)}
-          className="w-full btn-acc"
-        >
-          Start Training
-        </button>
-        <button
-          onClick={() => onDeleteModel(model.name)}
-          className="w-full btn"
-        >
-          Delete Model
-        </button>
-      </div>
+      {showButtons &&
+        <div className="p-6 pt-0 space-y-3">
+          <button
+            onClick={onEditModel}
+            className="w-full btn-sec"
+          >
+            Edit Model
+          </button>
+          <button
+            onClick={() => onTrainModel(model.name)}
+            className="w-full btn-acc"
+          >
+            Start Training
+          </button>
+          <button
+            onClick={() => onDeleteModel(model.name)}
+            className="w-full btn"
+          >
+            Delete Model
+          </button>
+        </div>
+      
+      }
     </div>
   );
 }

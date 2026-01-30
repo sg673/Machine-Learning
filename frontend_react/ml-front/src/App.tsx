@@ -3,8 +3,9 @@ import { Header } from './components/Header';
 import { Dashboard } from './dashboard/dashboard';
 import { ModelBuilder } from './modelBuilder';
 import { ModelView } from './modelView/modelView';
+import ModelTrainer from "./modelTrainer/modelTrainer"
 
-type Page = 'dashboard' | 'modelBuilder' | 'modelView';
+type Page = 'dashboard' | 'modelBuilder' | 'modelView' | 'modelTrainer';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -19,6 +20,7 @@ function App() {
       {currentPage === 'dashboard' && <Dashboard />}
       {currentPage === 'modelBuilder' && <ModelBuilder />}
       {currentPage === 'modelView' && <ModelView onPageChange={handlePageChange}/>}
+      {currentPage === 'modelTrainer' && <ModelTrainer/>}
     </div>
   )
 }
