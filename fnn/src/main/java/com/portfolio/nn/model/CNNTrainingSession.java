@@ -27,7 +27,7 @@ public class CNNTrainingSession {
   private double accuracy;
   private final String modelId;
   private final String trainingData;
-  private final ConvolutionalNetwork network;
+  private final transient ConvolutionalNetwork network;
   private final long startTime = System.currentTimeMillis();
   private boolean isRunning;
 

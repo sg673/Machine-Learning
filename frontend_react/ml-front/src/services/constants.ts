@@ -48,3 +48,17 @@ export type cnnTrainingParameters = {
   batchSize: number;
   learningRate: number;
 }
+
+export type cnnTrainingSession = {
+  sessionId: string;
+  status: 'INITIALIZED' | 'TRAINING' | 'COMPLETED' | 'FAILED' | 'STOPPED';
+  currentEpoch: number;
+  totalEpochs: number;
+  currentBatch: number;
+  totalBatches: number;
+  accuracy: number;
+  modelId: string;
+  trainingData: string;
+  startTime: string;
+  isRunning: boolean;
+}
