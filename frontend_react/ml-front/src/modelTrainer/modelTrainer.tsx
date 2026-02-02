@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { cnnModelApi, cnnTrainingApi } from "../services/api";
 import type { CNNModel } from "../modelBuilder/types";
-import { TrainerHeader } from "./TrainerHeader";
-import { TrainingParameters } from "./TrainingParameters";
+import { TrainerHeader } from "./trainerHeader";
+import { TrainingParameters } from "./trainingParameters";
 import { TrainingProgress } from "./trainingProgress";
-import { TrainingLogs } from "./TrainingLogs";
+import { TrainingLogs } from "./trainingLogs";
 import type { cnnTrainingSession } from "../services/constants";
 
 export default function ModelTrainer() {
@@ -32,27 +32,53 @@ export default function ModelTrainer() {
     fetchModels();
   }, []);
 
+  useEffect(() => {
+    let interval: number | null = null;
+    
+    if (trainingSessionId && isRunning) {
+      interval = setInterval(async () => {
+        try {
+          const status = await cnnTrainingApi.status(trainingSessionId);
+          console.log(status);
+          setSessionStatus(status);
+          setIsRunning(status.isRunning);
+          
+          if (!status.isRunning || status.status === 'COMPLETED' || status.status === 'FAILED') {
+            setIsRunning(false);
+          }
+        } catch (error) {
+          console.error("Failed to fetch training status:", error);
+          setIsRunning(false);
+        }
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [trainingSessionId, isRunning]);
+
   const handleModelStart = async () => {
-    const params = {
-      epochs: epochs,
-      batchSize: batchSize,
-      learningRate: lr,
+    try {
+      const params = { epochs, batchSize, learningRate: lr };
+      const response = await cnnTrainingApi.start(selectedModelId, params);
+      setTrainingSessionId(response);
+      setIsRunning(true);
+    } catch (error) {
+      console.error("Failed to start training:", error);
     }
+  };
 
-    const sessionId = await cnnTrainingApi.start(selectedModelId, params);
-    setTrainingSessionId(sessionId);
-    handleStatusUpdate();
-  }
-
-  const handleStatusUpdate = async () => {
-    console.log("Updating status...")
+  const handleSessionStop = async () => {
     if (trainingSessionId) {
-      const status = await cnnTrainingApi.status(trainingSessionId);
-      console.log(status)
-      setSessionStatus(status);
-      setIsRunning(status.isRunning);
+      try {
+        await cnnTrainingApi.stop(trainingSessionId);
+        setIsRunning(false);
+      } catch (error) {
+        console.error("Failed to stop training:", error);
+      }
     }
-  }
+  };
 
   return (
     <div className="h-screen flex flex-col bg-bg">
@@ -61,6 +87,7 @@ export default function ModelTrainer() {
         selectedModelId={selectedModelId}
         onModelChange={setSelectedModelId}
         onModelStart={handleModelStart}
+        onTrainingStop={handleSessionStop}
         isRunning={isRunning}
       />
 
