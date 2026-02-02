@@ -182,24 +182,4 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
     }
     return result;
   }
-
-  private void printStructure(){
-    if(head.isEmpty()){
-      System.out.println("No layers defined");
-      return;
-    }
-    LayerBase current = head.get();
-    int layerIndex = 0;
-    while(current != null){
-      int[] inputShape = current.getInputShape();
-      int[] outputShape = current.getOutputShape();
-      System.out.printf("Layer %d: %s | Input Shape: (%d, %d, %d) | Output Shape: (%d, %d, %d)\n",
-          layerIndex,
-          current.getClass().getSimpleName(),
-          inputShape[0], inputShape[1], inputShape[2],
-          outputShape[0], outputShape[1], outputShape[2]);
-      current = current.next.orElse(null);
-      layerIndex++;
-    }
-  }
 }
