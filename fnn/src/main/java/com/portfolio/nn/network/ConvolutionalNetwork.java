@@ -18,6 +18,8 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
   // Should usually be an input layer
   private Optional<LayerBase> head;
 
+  private Optional<LayerBase> tail;
+
   private LossFunction lossFunction;
 
   private DataSet trainingData;
@@ -55,6 +57,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       int[] outputShape = current.getOutputShape();
       layer.setInputShape(outputShape[0], outputShape[1], outputShape[2]);
     }
+    tail = Optional.of(layer);
     return this;
   }
 
@@ -133,16 +136,9 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
         });
         session.setLoss(batchLoss.sum() / (batchEnd - batchStart));
-        
-        if (head.isPresent()) {
-          LayerBase current = head.get();
-          while (current.next.isPresent()) {
-            current = current.next.get();
-          }
-          while (current != null) {
-            accumulatedGradient.set(current.backward(accumulatedGradient.get(), learningRate));
-            current = current.prev.orElse(null);
-          }
+
+        for(LayerBase layer = tail.get(); layer != null; layer = layer.prev.orElse(null)){
+          accumulatedGradient.set(layer.backward(accumulatedGradient.get(), learningRate));
         }
       }
     }
