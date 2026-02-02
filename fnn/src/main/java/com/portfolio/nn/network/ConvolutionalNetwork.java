@@ -2,6 +2,7 @@ package com.portfolio.nn.network;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.DoubleAdder;
 import java.util.stream.IntStream;
 
 import com.portfolio.nn.constants.DataSet;
@@ -100,7 +101,9 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
         session.setCurrentBatch(currentBatch);
 
         int batchEnd = Math.min(batchStart + batchSize, x.length);
+
         AtomicReference<double[][][]> accumulatedGradient = new AtomicReference<>();
+        DoubleAdder batchLoss = new DoubleAdder();
 
         if (currentBatch % 10 == 0) {
           System.out.print("\r Epoch:" + session.getCurrentEpoch() + " batch:" + currentBatch);
@@ -109,7 +112,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
         IntStream.range(batchStart, batchEnd).parallel().forEach(i -> {
           double[] output = forward(x[i]);
           double[][][] gradient = convertTo3D(lossFunction.calculateGradient(output, y[i]), output.length, 1, 1);
-          session.setLoss(lossFunction.calculateLoss(output, y[i]));
+          batchLoss.add(lossFunction.calculateLoss(output, y[i]));
 
           synchronized (accumulatedGradient){
             if (accumulatedGradient.get() == null){
@@ -129,6 +132,8 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
           }
 
         });
+        session.setLoss(batchLoss.sum() / (batchEnd - batchStart));
+        
         if (head.isPresent()) {
           LayerBase current = head.get();
           while (current.next.isPresent()) {
