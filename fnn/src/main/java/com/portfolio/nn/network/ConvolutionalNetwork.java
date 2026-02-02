@@ -110,14 +110,17 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
         DoubleAdder batchLoss = new DoubleAdder();
 
         // Foward pass
-        double[][][] accumulatedGradient = IntStream.range(batchSize, batchEnd)
+        double[][][] accumulatedGradient = IntStream.range(batchStart, batchEnd)
             .parallel()
             .mapToObj(i -> {
               double[] output = forward(x[i]);
 
-              batchLoss.add(lossFunction.calculateLoss(output, y[i]));
+              batchLoss.add(
+                  lossFunction.calculateLoss(output, y[i]));
 
-              return convertTo3D(lossFunction.calculateGradient(output, y[i]), output.length, 1, 1);
+              return convertTo3D(
+                  lossFunction.calculateGradient(output, y[i]),
+                  output.length, 1, 1);
             })
             .reduce(this::addGradients)
             .orElseThrow();
