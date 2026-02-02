@@ -1,7 +1,6 @@
 package com.portfolio.nn.network;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.stream.IntStream;
 
@@ -24,7 +23,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   private DataSet trainingData;
 
-  //TODO add session and update acc, batches, etc over time
+  // TODO add session and update acc, batches, etc over time
 
   public ConvolutionalNetwork(DataSet trainingData) {
     this.head = Optional.empty();
@@ -97,48 +96,37 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       CNNTrainingSession session) {
     for (int epoch = 0; epoch < epochs; epoch++) {
       session.setCurrentEpoch(epoch + 1);
-      
+
       int currentBatch = 0;
       for (int batchStart = 0; batchStart < x.length; batchStart += batchSize) {
         currentBatch++;
         session.setCurrentBatch(currentBatch);
-
-        int batchEnd = Math.min(batchStart + batchSize, x.length);
-
-        AtomicReference<double[][][]> accumulatedGradient = new AtomicReference<>();
-        DoubleAdder batchLoss = new DoubleAdder();
-
         if (currentBatch % 10 == 0) {
           System.out.print("\r Epoch:" + session.getCurrentEpoch() + " batch:" + currentBatch);
         }
 
-        IntStream.range(batchStart, batchEnd).parallel().forEach(i -> {
-          double[] output = forward(x[i]);
-          double[][][] gradient = convertTo3D(lossFunction.calculateGradient(output, y[i]), output.length, 1, 1);
-          batchLoss.add(lossFunction.calculateLoss(output, y[i]));
+        int batchEnd = Math.min(batchStart + batchSize, x.length);
 
-          synchronized (accumulatedGradient){
-            if (accumulatedGradient.get() == null){
-              accumulatedGradient.set(gradient);
-            }
-            else{
-              double[][][] current = accumulatedGradient.get();
-              for (int d = 0; d < gradient.length; d++) {
-                for (int h = 0; h < gradient[0].length; h++) {
-                  for (int w = 0; w < gradient[0][0].length; w++) {
-                    current[d][h][w] += gradient[d][h][w];
-                  }
-                }
-              }
-              accumulatedGradient.set(current);
-            }
-          }
+        DoubleAdder batchLoss = new DoubleAdder();
 
-        });
+        // Foward pass
+        double[][][] accumulatedGradient = IntStream.range(batchSize, batchEnd)
+            .parallel()
+            .mapToObj(i -> {
+              double[] output = forward(x[i]);
+
+              batchLoss.add(lossFunction.calculateLoss(output, y[i]));
+
+              return convertTo3D(lossFunction.calculateGradient(output, y[i]), output.length, 1, 1);
+            })
+            .reduce(this::addGradients)
+            .orElseThrow();
+
         session.setLoss(batchLoss.sum() / (batchEnd - batchStart));
 
-        for(LayerBase layer = tail.get(); layer != null; layer = layer.prev.orElse(null)){
-          accumulatedGradient.set(layer.backward(accumulatedGradient.get(), learningRate));
+        // Apply backward propagation
+        for (LayerBase layer = tail.get(); layer != null; layer = layer.prev.orElse(null)) {
+          accumulatedGradient = (layer.backward(accumulatedGradient, learningRate));
         }
       }
     }
@@ -178,6 +166,24 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       for (int h = 0; h < tensor[0].length; h++) {
         for (int w = 0; w < tensor[0][0].length; w++) {
           result[index++] = tensor[d][h][w];
+        }
+      }
+    }
+    return result;
+  }
+
+  private double[][][] addGradients(double[][][] a, double[][][] b) {
+    if (a == null)
+      return b;
+    if (b == null)
+      return a;
+
+    double[][][] result = new double[a.length][a[0].length][a[0][0].length];
+
+    for (int d = 0; d < a.length; d++) {
+      for (int h = 0; h < a[0].length; h++) {
+        for (int w = 0; w < a[0][0].length; w++) {
+          result[d][h][w] = a[d][h][w] + b[d][h][w];
         }
       }
     }
