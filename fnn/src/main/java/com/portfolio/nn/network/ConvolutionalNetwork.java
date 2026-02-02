@@ -1,8 +1,11 @@
 package com.portfolio.nn.network;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.IntStream;
 
 import com.portfolio.nn.constants.DataSet;
+import com.portfolio.nn.model.CNNTrainingSession;
 import com.portfolio.nn.network.layers.LayerBase;
 import com.portfolio.nn.network.loss.CategoricalCrossEntropy;
 import com.portfolio.nn.network.loss.LossFunction;
@@ -26,7 +29,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
     this.trainingData = trainingData;
   }
 
-  public DataSet getTrainingData(){
+  public DataSet getTrainingData() {
     return trainingData;
   }
 
@@ -37,7 +40,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
   public ConvolutionalNetwork addLayer(LayerBase layer) {
     if (head.isEmpty()) {
       int[] inputSize = trainingData.getInputSize();
-      layer.setInputShape(inputSize[0],inputSize[1],inputSize[2]);
+      layer.setInputShape(inputSize[0], inputSize[1], inputSize[2]);
 
       head = Optional.of(layer);
     } else {
@@ -77,22 +80,62 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   @Override
   public void train(double[][] x, double[][] y, double learningRate, int epochs) {
-    printStructure();
-    for (int epoch = 0; epoch < epochs; epoch++) {
-      for (int i = 0; i < x.length; i++) {
-        if (i % 100 == 0) {
-          System.out.print("\r Epoch:" + epoch + " i:" + i);
-        }
-        double[] output = forward(x[i]);
-        double[][][] gradient = convertTo3D(lossFunction.calculateGradient(output, y[i]), output.length, 1, 1);
+    CNNTrainingSession session = new CNNTrainingSession(null, null, null, null);
+    train(x, y, learningRate, epochs, 1, session);
+  }
 
+  public void train(double[][] x, double[][] y, double learningRate, int epochs, int batchSize) {
+    CNNTrainingSession session = new CNNTrainingSession(null, null, null, null);
+    train(x, y, learningRate, epochs, batchSize, session);
+  }
+
+  public void train(double[][] x, double[][] y, double learningRate, int epochs, int batchSize,
+      CNNTrainingSession session) {
+    for (int epoch = 0; epoch < epochs; epoch++) {
+      session.setCurrentEpoch(epoch + 1);
+      
+      int currentBatch = 0;
+      for (int batchStart = 0; batchStart < x.length; batchStart += batchSize) {
+        currentBatch++;
+        session.setCurrentBatch(currentBatch);
+
+        int batchEnd = Math.min(batchStart + batchSize, x.length);
+        AtomicReference<double[][][]> accumulatedGradient = new AtomicReference<>();
+
+        if (currentBatch % 10 == 0) {
+          System.out.print("\r Epoch:" + session.getCurrentEpoch() + " batch:" + currentBatch);
+        }
+
+        IntStream.range(batchStart, batchEnd).parallel().forEach(i -> {
+          double[] output = forward(x[i]);
+          double[][][] gradient = convertTo3D(lossFunction.calculateGradient(output, y[i]), output.length, 1, 1);
+          session.setLoss(lossFunction.calculateLoss(output, y[i]));
+
+          synchronized (accumulatedGradient){
+            if (accumulatedGradient.get() == null){
+              accumulatedGradient.set(gradient);
+            }
+            else{
+              double[][][] current = accumulatedGradient.get();
+              for (int d = 0; d < gradient.length; d++) {
+                for (int h = 0; h < gradient[0].length; h++) {
+                  for (int w = 0; w < gradient[0][0].length; w++) {
+                    current[d][h][w] += gradient[d][h][w];
+                  }
+                }
+              }
+              accumulatedGradient.set(current);
+            }
+          }
+
+        });
         if (head.isPresent()) {
           LayerBase current = head.get();
           while (current.next.isPresent()) {
             current = current.next.get();
           }
           while (current != null) {
-            gradient = current.backward(gradient, learningRate);
+            accumulatedGradient.set(current.backward(accumulatedGradient.get(), learningRate));
             current = current.prev.orElse(null);
           }
         }
