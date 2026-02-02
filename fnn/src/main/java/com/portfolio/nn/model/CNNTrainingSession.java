@@ -25,6 +25,7 @@ public class CNNTrainingSession {
   private int currentBatch;
   private int totalBatches;
   private double accuracy;
+  private double loss;
   private final String modelId;
   private final String trainingData;
   private final ConvolutionalNetwork network;
@@ -45,9 +46,16 @@ public class CNNTrainingSession {
     this.sessionId = sessionId;
     this.modelId = modelId;
     this.network = model;
-    this.totalEpochs = params.epochs;
-    this.totalBatches = (int) Math.ceil((double) model.getTrainingData().getTrainingSize() / params.batchSize);
-    this.trainingData = model.getTrainingData().getName();
+    if(!(model==null || params == null)){
+      this.totalEpochs = params.epochs;
+      this.totalBatches = (int) Math.ceil((double) model.getTrainingData().getTrainingSize() / params.batchSize);
+      this.trainingData = model.getTrainingData().getName();
+    }
+    else{
+      this.totalEpochs = 0;
+      this.totalBatches = 0;
+      this.trainingData = "";
+    }
 
   }
 
@@ -154,6 +162,10 @@ public class CNNTrainingSession {
     return isRunning;
   }
 
+  public double getLoss(){
+    return loss;
+  }
+
   // Setters (only for non-final fields)
   public void setStatus(SessionStatus status) {
     this.status = status;
@@ -177,6 +189,10 @@ public class CNNTrainingSession {
 
   public void setRunning(boolean running) {
     this.isRunning = running;
+  }
+
+  public void setLoss(double loss){
+    this.loss = loss;
   }
 
 }
