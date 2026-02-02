@@ -18,6 +18,8 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   private DataSet trainingData;
 
+  //TODO add session and update acc, batches, etc over time
+
   public ConvolutionalNetwork(DataSet trainingData) {
     this.head = Optional.empty();
     this.lossFunction = new CategoricalCrossEntropy();
@@ -75,6 +77,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   @Override
   public void train(double[][] x, double[][] y, double learningRate, int epochs) {
+    printStructure();
     for (int epoch = 0; epoch < epochs; epoch++) {
       for (int i = 0; i < x.length; i++) {
         if (i % 100 == 0) {
@@ -135,5 +138,25 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       }
     }
     return result;
+  }
+
+  private void printStructure(){
+    if(head.isEmpty()){
+      System.out.println("No layers defined");
+      return;
+    }
+    LayerBase current = head.get();
+    int layerIndex = 0;
+    while(current != null){
+      int[] inputShape = current.getInputShape();
+      int[] outputShape = current.getOutputShape();
+      System.out.printf("Layer %d: %s | Input Shape: (%d, %d, %d) | Output Shape: (%d, %d, %d)\n",
+          layerIndex,
+          current.getClass().getSimpleName(),
+          inputShape[0], inputShape[1], inputShape[2],
+          outputShape[0], outputShape[1], outputShape[2]);
+      current = current.next.orElse(null);
+      layerIndex++;
+    }
   }
 }

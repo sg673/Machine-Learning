@@ -20,6 +20,8 @@ import com.portfolio.nn.network.ConvolutionalNetwork;
 import com.portfolio.nn.repo.ResultRepo;
 import com.portfolio.nn.util.DataUtils;
 
+import jakarta.annotation.PreDestroy;
+
 @Service
 public class CNNTrainingService {
 
@@ -39,6 +41,16 @@ public class CNNTrainingService {
       return this.size() > 16;
     }
   };
+
+  @PreDestroy
+  public void cleanup(){
+    sessions.values().forEach(session -> {
+      if(session.isRunning()){
+        session.setRunning(false);
+        session.setStatus(SessionStatus.STOPPED);
+      }
+    });
+  }
 
   /**
    * Initiates asynchronous training of a Convolutional Neural Network model.

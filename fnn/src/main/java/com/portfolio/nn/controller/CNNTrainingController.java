@@ -55,7 +55,6 @@ public class CNNTrainingController {
     }
     String sessionId = trainingService.startTraining(model.get(), params);
     return ResponseEntity.status(HttpStatus.CREATED).body(sessionId);
-
   }
 
   /**

@@ -59,7 +59,7 @@ public class CNNTrainingSession {
     this.currentEpoch = 0;
     this.currentBatch = 0;
     this.accuracy = 0.0;
-    this.isRunning = false;
+    this.isRunning = true;
   }
 
   /**
