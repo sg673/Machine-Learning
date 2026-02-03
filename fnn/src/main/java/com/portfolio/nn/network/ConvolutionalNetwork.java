@@ -2,6 +2,7 @@ package com.portfolio.nn.network;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.DoubleAdder;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.IntStream;
 
 import com.portfolio.nn.constants.DataSet;
@@ -97,6 +98,9 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
     for (int epoch = 0; epoch < epochs; epoch++) {
       session.setCurrentEpoch(epoch + 1);
 
+      LongAdder correctPredictions = new LongAdder();
+      LongAdder totalSamples = new LongAdder();
+
       int currentBatch = 0;
       for (int batchStart = 0; batchStart < x.length; batchStart += batchSize) {
         currentBatch++;
@@ -117,7 +121,14 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
               batchLoss.add(
                   lossFunction.calculateLoss(output, y[i]));
-
+              
+              int predicted = getMaxIndex(output);
+              int actual = getMaxIndex(y[i]);
+              if (predicted == actual) {
+                correctPredictions.increment();
+              }
+              totalSamples.increment();
+              
               return convertTo3D(
                   lossFunction.calculateGradient(output, y[i]),
                   output.length, 1, 1);
@@ -132,6 +143,8 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
           accumulatedGradient = (layer.backward(accumulatedGradient, learningRate));
         }
       }
+      double accuracy = correctPredictions.sum() / (double) totalSamples.sum();
+      session.setAccuracy(accuracy);
     }
   }
 
@@ -191,5 +204,17 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       }
     }
     return result;
+  }
+
+  private int getMaxIndex(double[] input){
+    int maxIndex = 0;
+    double maxValue = input[0];
+    for(int i = 1; i < input.length; i++){
+      if(input[i] > maxValue){
+        maxValue = input[i];
+        maxIndex = i;
+      }
+    }
+    return maxIndex;
   }
 }
