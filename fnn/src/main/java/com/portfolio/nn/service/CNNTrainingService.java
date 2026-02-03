@@ -123,7 +123,7 @@ public class CNNTrainingService {
         session.setStatus(SessionStatus.TRAINING);
         session.setRunning(true);
         // TODO implement batches
-        network.train(images, labels, params.learningRate, params.epochs);
+        network.train(images, labels, params.learningRate, params.epochs, params.batchSize, session);
         trainingEnd(session, SessionStatus.COMPLETED);
       } catch (IOException err) {
         trainingEnd(session, SessionStatus.FAILED, "Dataset Not Recognised");
