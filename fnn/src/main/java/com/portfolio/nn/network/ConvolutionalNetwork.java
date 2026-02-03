@@ -110,6 +110,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
         }
 
         int batchEnd = Math.min(batchStart + batchSize, x.length);
+        int currentBatchSize = batchEnd - batchStart;
 
         DoubleAdder batchLoss = new DoubleAdder();
 
@@ -121,14 +122,14 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
               batchLoss.add(
                   lossFunction.calculateLoss(output, y[i]));
-              
+
               int predicted = getMaxIndex(output);
               int actual = getMaxIndex(y[i]);
               if (predicted == actual) {
                 correctPredictions.increment();
               }
               totalSamples.increment();
-              
+
               return convertTo3D(
                   lossFunction.calculateGradient(output, y[i]),
                   output.length, 1, 1);
@@ -136,11 +137,10 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
             .reduce(this::addGradients)
             .orElseThrow();
 
-        session.setLoss(batchLoss.sum() / (batchEnd - batchStart));
-
+        session.setLoss(batchLoss.sum() / (currentBatchSize));
         // Apply backward propagation
         for (LayerBase layer = tail.get(); layer != null; layer = layer.prev.orElse(null)) {
-          accumulatedGradient = (layer.backward(accumulatedGradient, learningRate));
+          accumulatedGradient = (layer.backward(accumulatedGradient, learningRate / currentBatchSize));
         }
       }
       double accuracy = correctPredictions.sum() / (double) totalSamples.sum();
@@ -206,11 +206,11 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
     return result;
   }
 
-  private int getMaxIndex(double[] input){
+  private int getMaxIndex(double[] input) {
     int maxIndex = 0;
     double maxValue = input[0];
-    for(int i = 1; i < input.length; i++){
-      if(input[i] > maxValue){
+    for (int i = 1; i < input.length; i++) {
+      if (input[i] > maxValue) {
         maxValue = input[i];
         maxIndex = i;
       }
