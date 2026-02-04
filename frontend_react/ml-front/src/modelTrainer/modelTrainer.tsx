@@ -32,28 +32,28 @@ export default function ModelTrainer() {
   }, []);
 
   useEffect(() => {
-  if (!trainingSessionId) return;
+    if (!trainingSessionId) return;
 
-  const interval = setInterval(async () => {
-    try {
-      const status = await cnnTrainingApi.status(trainingSessionId);
-      setSessionStatus(status);
-      //console.log(status);
+    const interval = setInterval(async () => {
+      try {
+        const status = await cnnTrainingApi.status(trainingSessionId);
+        setSessionStatus(status);
+        //console.log(status);
 
-      if (
-        status.status === "COMPLETED" ||
-        status.status === "FAILED"
-      ) {
+        if (
+          status.status === "COMPLETED" ||
+          status.status === "FAILED"
+        ) {
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.error(error);
         clearInterval(interval);
       }
-    } catch (error) {
-      console.error(error);
-      clearInterval(interval);
-    }
-  }, 200);
+    }, 500);
 
-  return () => clearInterval(interval);
-}, [trainingSessionId]);
+    return () => clearInterval(interval);
+  }, [trainingSessionId]);
 
   const handleModelStart = async () => {
     try {

@@ -24,8 +24,6 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   private DataSet trainingData;
 
-  // TODO add session and update acc, batches, etc over time
-
   public ConvolutionalNetwork(DataSet trainingData) {
     this.head = Optional.empty();
     this.lossFunction = new CategoricalCrossEntropy();
