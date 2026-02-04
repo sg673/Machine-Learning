@@ -49,22 +49,6 @@ export function TrainingProgress({ sessionStatus }: TrainingProgressProps) {
     });
   }, [sessionStatus?.currentEpoch, sessionStatus?.currentBatch, sessionStatus]);
 
-
-  // useEffect(() => {
-  //   if (!sessionStatus?.totalEpochs) return;
-  //   console.log("Initializing training data for total epochs:", sessionStatus.totalEpochs);
-  //   const initialData = Array.from(
-  //     { length: sessionStatus.totalEpochs },
-  //     (_, i) => ({
-  //       epoch: i + 1,
-  //       loss: null as number | null,
-  //       accuracy: null as number | null
-  //     })
-  //   );
-
-  //   setTrainingData(initialData);
-  // }, [sessionStatus?.totalEpochs]);
-
   return (
     <section className="flex-1 p-6">
       <h2 className="text-lg font-medium mb-4 text-text-col">Training Progress</h2>
@@ -100,7 +84,7 @@ export function TrainingProgress({ sessionStatus }: TrainingProgressProps) {
                   tick={false}
                 />
                 <YAxis yAxisId="left" stroke="#9CA3AF" domain={[0, 1]} />
-                <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" domain={[0, 1]} />
+                <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" domain={[0, 1]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#1F2937',
@@ -109,9 +93,17 @@ export function TrainingProgress({ sessionStatus }: TrainingProgressProps) {
                     color: '#9CA3AF'
                   }}
                   formatter={(value, name, props) => {
+                    if (value == null) return ['—', name];
+
+                    const formattedValue =
+                      name === 'Accuracy'
+                        ? `${(Number(value) * 100).toFixed(2)}%`
+                        : Number(value).toFixed(4);
+
                     const { epoch, batch } = props.payload;
+
                     return [
-                      value,
+                      formattedValue,
                       `${name} (epoch ${epoch}, batch ${batch})`
                     ];
                   }}
@@ -125,6 +117,7 @@ export function TrainingProgress({ sessionStatus }: TrainingProgressProps) {
                   strokeWidth={2}
                   connectNulls={false}
                   isAnimationActive={false}
+                  dot={false}
                   name="Loss"
                 />
                 <Line
@@ -135,6 +128,7 @@ export function TrainingProgress({ sessionStatus }: TrainingProgressProps) {
                   strokeWidth={2}
                   connectNulls={false}
                   isAnimationActive={false}
+                  dot={false}
                   name="Accuracy"
                 />
               </LineChart>
