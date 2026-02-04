@@ -10,8 +10,8 @@ import type { cnnTrainingSession } from "../services/constants";
 export default function ModelTrainer() {
   const [models, setModels] = useState<CNNModel[]>([]);
   const [selectedModelId, setSelectedModelId] = useState<string>("");
-  const [epochs, setEpochs] = useState(20);
-  const [lr, setLr] = useState(0.001);
+  const [epochs, setEpochs] = useState(5);
+  const [lr, setLr] = useState(0.01);
   const [batchSize, setBatchSize] = useState(32);
   const [trainingSessionId, setTrainingSessionId] = useState<string | null>(null);
   const [sessionStatus, setSessionStatus] = useState<cnnTrainingSession | null>(null);
@@ -33,30 +33,28 @@ export default function ModelTrainer() {
   }, []);
 
   useEffect(() => {
-    let interval: number | null = null;
-    
-    if (trainingSessionId && isRunning) {
-      interval = setInterval(async () => {
-        try {
-          const status = await cnnTrainingApi.status(trainingSessionId);
-          console.log(status);
-          setSessionStatus(status);
-          setIsRunning(status.isRunning);
-          
-          if (!status.isRunning || status.status === 'COMPLETED' || status.status === 'FAILED') {
-            setIsRunning(false);
-          }
-        } catch (error) {
-          console.error("Failed to fetch training status:", error);
-          setIsRunning(false);
-        }
-      }, 1000);
+  if (!trainingSessionId) return;
+
+  const interval = setInterval(async () => {
+    try {
+      const status = await cnnTrainingApi.status(trainingSessionId);
+      setSessionStatus(status);
+      //console.log(status);
+
+      if (
+        status.status === "COMPLETED" ||
+        status.status === "FAILED"
+      ) {
+        clearInterval(interval);
+      }
+    } catch (error) {
+      console.error(error);
+      clearInterval(interval);
     }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [trainingSessionId, isRunning]);
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [trainingSessionId]);
 
   const handleModelStart = async () => {
     try {

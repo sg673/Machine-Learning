@@ -57,6 +57,7 @@ export type cnnTrainingSession = {
   currentBatch: number;
   totalBatches: number;
   accuracy: number;
+  loss: number;
   modelId: string;
   trainingData: string;
   startTime: string;
