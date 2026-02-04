@@ -121,7 +121,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
               double[] output = forward(x[i]);
 
               batchLoss.add(
-                  lossFunction.calculateLoss(output, y[i]));
+                  lossFunction.calculateLoss(output, y[i]) / currentBatchSize);
 
               int predicted = getMaxIndex(output);
               int actual = getMaxIndex(y[i]);
@@ -142,9 +142,9 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
         for (LayerBase layer = tail.get(); layer != null; layer = layer.prev.orElse(null)) {
           accumulatedGradient = (layer.backward(accumulatedGradient, learningRate / currentBatchSize));
         }
+        double accuracy = correctPredictions.sum() / (double) totalSamples.sum();
+        session.setAccuracy(accuracy);
       }
-      double accuracy = correctPredictions.sum() / (double) totalSamples.sum();
-      session.setAccuracy(accuracy);
     }
   }
 
