@@ -15,7 +15,6 @@ export default function ModelTrainer() {
   const [batchSize, setBatchSize] = useState(32);
   const [trainingSessionId, setTrainingSessionId] = useState<string | null>(null);
   const [sessionStatus, setSessionStatus] = useState<cnnTrainingSession | null>(null);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchModels = async () => {
@@ -51,7 +50,7 @@ export default function ModelTrainer() {
       console.error(error);
       clearInterval(interval);
     }
-  }, 1000);
+  }, 200);
 
   return () => clearInterval(interval);
 }, [trainingSessionId]);
@@ -61,7 +60,6 @@ export default function ModelTrainer() {
       const params = { epochs, batchSize, learningRate: lr };
       const response = await cnnTrainingApi.start(selectedModelId, params);
       setTrainingSessionId(response);
-      setIsRunning(true);
     } catch (error) {
       console.error("Failed to start training:", error);
     }
@@ -71,7 +69,6 @@ export default function ModelTrainer() {
     if (trainingSessionId) {
       try {
         await cnnTrainingApi.stop(trainingSessionId);
-        setIsRunning(false);
       } catch (error) {
         console.error("Failed to stop training:", error);
       }
@@ -86,7 +83,7 @@ export default function ModelTrainer() {
         onModelChange={setSelectedModelId}
         onModelStart={handleModelStart}
         onTrainingStop={handleSessionStop}
-        isRunning={isRunning}
+        isRunning={sessionStatus?.isRunning ? sessionStatus.isRunning : false}
       />
 
       <main className="flex flex-1 overflow-hidden">
