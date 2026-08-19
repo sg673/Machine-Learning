@@ -1,13 +1,10 @@
 package com.portfolio.nn.model;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import com.google.gson.Gson;
+
 import com.portfolio.nn.constants.SessionStatus;
 import com.portfolio.nn.network.FeedForwardNetwork;
 import com.portfolio.nn.repo.ResultRepo;
@@ -31,22 +28,20 @@ public class TrainingSession {
 
   public TrainingSession(String sessionId, FeedForwardNetwork network, int totalEpochs, int totalBatches,
       String modelName, String trainingData) {
-    
+
+    initialiseDefaultAttributes();
     this.sessionId = sessionId;
     this.network = network;
     this.totalEpochs = totalEpochs;
     this.totalBatches = totalBatches;
-    this.status = SessionStatus.INITIALIZED;
-    this.currentEpoch = 0;
-    this.currentBatch = 0;
-    this.accuracy = 0.0;
-    this.isRunning = false;
     this.modelName = modelName;
     this.trainingData = trainingData;
   }
 
+  
+
   /**
-   * Save the trained model to disk with timestamp.
+   * Save the trained model to Repository with timestamp.
    * 
    * @param modelId
    */
@@ -64,54 +59,12 @@ public class TrainingSession {
     repo.save(result);
   }
 
-  /**
-   * Load the most recent model from disk.
-   * 
-   * @param modelName Name of the model to load
-   * @return Loaded neural network instance
-   * @throws IOException If model file not found or loading fails
-   */
-  public TrainingSession Load(String modelName) throws IOException {
-    Path dir = Paths.get("savedModels", modelName);
-    if (!Files.exists(dir)) {
-      throw new IOException("Model directory not found: " + dir);
-    }
-
-    Path mostRecent = Files.list(dir)
-        .filter(path -> path.toString().endsWith(".json"))
-        .max((p1, p2) -> {
-          try {
-            return Files.getLastModifiedTime(p1).compareTo(Files.getLastModifiedTime(p2));
-          } catch (IOException e) {
-            return 0;
-          }
-        })
-        .orElseThrow(() -> new IOException("No model files found in: " + dir));
-
-    String json = new String(Files.readAllBytes(mostRecent));
-    return new Gson().fromJson(json, TrainingSession.class);
-  }
-
-  /**
-   * Load the specified model from disk.
-   * 
-   * @param modelName Name of the model to load
-   * @param filename  Name of the file to load
-   * @return Loaded neural network instance
-   * @throws IOException If model file not found or loading fails
-   */
-  public TrainingSession Load(String modelName, String filename) throws IOException {
-    Path dir = Paths.get("savedModels", modelName);
-    if (!Files.exists(dir)) {
-      throw new IOException("Model directory not found: " + dir);
-    }
-    try {
-      String json = new String(Files.readAllBytes(Paths.get("savedModels", modelName, filename)));
-      return new Gson().fromJson(json, TrainingSession.class);
-    } catch (IOException e) {
-      System.out.println(e);
-      throw new IOException("Error loading model from file: " + filename, e);
-    }
+  private void initialiseDefaultAttributes(){
+    this.status = SessionStatus.INITIALIZED;
+    this.currentEpoch = 0;
+    this.currentBatch = 0;
+    this.accuracy = 0.0;
+    this.isRunning = false;
   }
 
   // Getters and setters

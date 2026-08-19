@@ -1,7 +1,12 @@
 package com.portfolio.nn.network;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.DoubleAdder;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.IntStream;
 
+import com.portfolio.nn.constants.DataSet;
+import com.portfolio.nn.model.CNNTrainingSession;
 import com.portfolio.nn.network.layers.LayerBase;
 import com.portfolio.nn.network.loss.CategoricalCrossEntropy;
 import com.portfolio.nn.network.loss.LossFunction;
@@ -13,11 +18,20 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
   // Should usually be an input layer
   private Optional<LayerBase> head;
 
+  private Optional<LayerBase> tail;
+
   private LossFunction lossFunction;
 
-  public ConvolutionalNetwork() {
+  private DataSet trainingData;
+
+  public ConvolutionalNetwork(DataSet trainingData) {
     this.head = Optional.empty();
     this.lossFunction = new CategoricalCrossEntropy();
+    this.trainingData = trainingData;
+  }
+
+  public DataSet getTrainingData() {
+    return trainingData;
   }
 
   public void setLossFunction(LossFunction lossFunction) {
@@ -26,8 +40,9 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   public ConvolutionalNetwork addLayer(LayerBase layer) {
     if (head.isEmpty()) {
-      // TODO replace temp MNIST input with generic
-      layer.setInputShape(28, 28, 1);
+      int[] inputSize = trainingData.getInputSize();
+      layer.setInputShape(inputSize[0], inputSize[1], inputSize[2]);
+
       head = Optional.of(layer);
     } else {
       LayerBase current = head.get();
@@ -40,6 +55,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       int[] outputShape = current.getOutputShape();
       layer.setInputShape(outputShape[0], outputShape[1], outputShape[2]);
     }
+    tail = Optional.of(layer);
     return this;
   }
 
@@ -55,8 +71,8 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       throw new Error("No layers defined");
     }
     LayerBase current = head.get();
-    // TODO replace temp MNIST input with generic
-    double[][][] tensor = convertTo3D(input, 1, 28, 28);
+    int[] inputSize = trainingData.getInputSize();
+    double[][][] tensor = convertTo3D(input, inputSize[2], inputSize[1], inputSize[0]);
     while (current != null) {
       tensor = current.forward(tensor);
       current = current.next.orElse(null);
@@ -66,24 +82,66 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
 
   @Override
   public void train(double[][] x, double[][] y, double learningRate, int epochs) {
-    for (int epoch = 0; epoch < epochs; epoch++) {
-      for (int i = 0; i < x.length; i++) {
-        if (i % 100 == 0) {
-          System.out.print("\r Epoch:" + epoch + " i:" + i);
-        }
-        double[] output = forward(x[i]);
-        double[][][] gradient = convertTo3D(lossFunction.calculateGradient(output, y[i]), output.length, 1, 1);
+    CNNTrainingSession session = new CNNTrainingSession(null, null, null, null);
+    train(x, y, learningRate, epochs, 1, session);
+  }
 
-        if (head.isPresent()) {
-          LayerBase current = head.get();
-          while (current.next.isPresent()) {
-            current = current.next.get();
-          }
-          while (current != null) {
-            gradient = current.backward(gradient, learningRate);
-            current = current.prev.orElse(null);
-          }
+  public void train(double[][] x, double[][] y, double learningRate, int epochs, int batchSize) {
+    CNNTrainingSession session = new CNNTrainingSession(null, null, null, null);
+    train(x, y, learningRate, epochs, batchSize, session);
+  }
+
+  public void train(double[][] x, double[][] y, double learningRate, int epochs, int batchSize,
+      CNNTrainingSession session) {
+    for (int epoch = 0; epoch < epochs; epoch++) {
+      session.setCurrentEpoch(epoch + 1);
+
+      LongAdder correctPredictions = new LongAdder();
+      LongAdder totalSamples = new LongAdder();
+
+      int currentBatch = 0;
+      for (int batchStart = 0; batchStart < x.length; batchStart += batchSize) {
+        currentBatch++;
+        session.setCurrentBatch(currentBatch);
+        if (currentBatch % 10 == 0) {
+          System.out.print("\r Epoch:" + session.getCurrentEpoch() + " batch:" + currentBatch);
         }
+
+        int batchEnd = Math.min(batchStart + batchSize, x.length);
+        int currentBatchSize = batchEnd - batchStart;
+
+        DoubleAdder batchLoss = new DoubleAdder();
+
+        // Foward pass
+        double[][][] accumulatedGradient = IntStream.range(batchStart, batchEnd)
+            .parallel()
+            .mapToObj(i -> {
+              double[] output = forward(x[i]);
+
+              batchLoss.add(
+                  lossFunction.calculateLoss(output, y[i]) / currentBatchSize);
+
+              int predicted = getMaxIndex(output);
+              int actual = getMaxIndex(y[i]);
+              if (predicted == actual) {
+                correctPredictions.increment();
+              }
+              totalSamples.increment();
+
+              return convertTo3D(
+                  lossFunction.calculateGradient(output, y[i]),
+                  output.length, 1, 1);
+            })
+            .reduce(this::addGradients)
+            .orElseThrow();
+
+        session.setLoss(batchLoss.sum() / (currentBatchSize));
+        // Apply backward propagation
+        for (LayerBase layer = tail.get(); layer != null; layer = layer.prev.orElse(null)) {
+          accumulatedGradient = (layer.backward(accumulatedGradient, learningRate / currentBatchSize));
+        }
+        double accuracy = correctPredictions.sum() / (double) totalSamples.sum();
+        session.setAccuracy(accuracy);
       }
     }
   }
@@ -126,5 +184,35 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       }
     }
     return result;
+  }
+
+  private double[][][] addGradients(double[][][] a, double[][][] b) {
+    if (a == null)
+      return b;
+    if (b == null)
+      return a;
+
+    double[][][] result = new double[a.length][a[0].length][a[0][0].length];
+
+    for (int d = 0; d < a.length; d++) {
+      for (int h = 0; h < a[0].length; h++) {
+        for (int w = 0; w < a[0][0].length; w++) {
+          result[d][h][w] = a[d][h][w] + b[d][h][w];
+        }
+      }
+    }
+    return result;
+  }
+
+  private int getMaxIndex(double[] input) {
+    int maxIndex = 0;
+    double maxValue = input[0];
+    for (int i = 1; i < input.length; i++) {
+      if (input[i] > maxValue) {
+        maxValue = input[i];
+        maxIndex = i;
+      }
+    }
+    return maxIndex;
   }
 }

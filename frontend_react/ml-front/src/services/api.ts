@@ -1,5 +1,5 @@
 import type { CNNModel } from "../modelBuilder/types";
-import type { Model, Training, Result } from "./constants";
+import type { Model, Training, Result, cnnTrainingParameters, cnnTrainingSession } from "./constants";
 
 const BASE_URL = "http://localhost:8080/api/v1/";
 
@@ -71,12 +71,25 @@ export const trainingApi = {
 export const resultsApi = {
   getAll: () => getJson<Result>("results"),
   getById: (id: string) => getJson<Result>(`results/${id}`),
+  deleteById: (id: string) => apiClient.delete(`results/${id}`).then(res => res.json()),
 }
 
 export const cnnModelApi = {
   create: (model: CNNModel) => apiClient.post(`models/cnn`, model).then(res => res.json()),
   getAll: () => getJson<CNNModel[]>(`models/cnn`),
   getById: (id: string) => getJson<CNNModel>(`models/cnn/${id}`),
-  delete: (id: string) => apiClient.delete(`models/cnn/${id}`).then(res => res.json()),
+  update: (id: string, model: CNNModel) => apiClient.put(`models/cnn/${id}`, model).then(res => res.json()),
+  delete: (id: string) => apiClient.delete(`models/cnn/${id}`),
+
+}
+
+export const cnnTrainingApi = {
+  start: (modelId: string, params: cnnTrainingParameters) =>
+    apiClient.post(`training/cnn/${modelId}/start`, params).then(res => res.text()),
+  status: (id: string) =>
+    getJson<cnnTrainingSession>(`training/cnn/${id}/status`),
+  stop: (id: string) =>
+    apiClient.post(`training/cnn/${id}/stop`, {}).then(res => res.json()),
+
 
 }

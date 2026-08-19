@@ -11,16 +11,24 @@ import com.portfolio.nn.repo.ResultRepo;
 
 @Service
 public class ResultService {
-  
+
   @Autowired
   private ResultRepo repo;
 
-  public Optional<Result> getResultById(String id){
+  public Optional<Result> getResultById(String id) {
     return repo.findById(id);
   }
 
-  public List<Result> getAllResults(){
+  public List<Result> getAllResults() {
     return repo.findAll();
+  }
+
+  public boolean deleteById(String id) {
+    if (repo.existsById(id)) {
+      repo.deleteById(id);
+      return true;
+    }
+    return false;
   }
 
 }

@@ -37,6 +37,9 @@ public class Result {
 
   private SessionStatus finalStatus;
 
+  @Column(name="error_message")
+  private String errorMessage;
+
   public Result() {
     this.resultId = UUID.randomUUID().toString();
   }
@@ -77,6 +80,9 @@ public class Result {
   public SessionStatus getFinalSessionStatus() {
     return finalStatus;
   }
+  public String getErrorMessage() {
+    return errorMessage;
+  }
 
   public void setModelId(String modelId) {
     this.modelId = modelId;
@@ -108,6 +114,9 @@ public class Result {
 
   public void setFinalStatus(SessionStatus status) {
     this.finalStatus = status;
+  }
+  public void setErrorMessage(String errorMessage) {
+    this.errorMessage = errorMessage;
   }
 
 }
