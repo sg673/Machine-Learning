@@ -1,7 +1,8 @@
 package com.portfolio.nn.network;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.DoubleAdder;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.IntStream;
 
 import com.portfolio.nn.constants.DataSet;
@@ -16,6 +17,8 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
   // Head of linked list
   // Should usually be an input layer
   private Optional<LayerBase> head;
+
+  private Optional<LayerBase> tail;
 
   private LossFunction lossFunction;
 
@@ -52,6 +55,7 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       int[] outputShape = current.getOutputShape();
       layer.setInputShape(outputShape[0], outputShape[1], outputShape[2]);
     }
+    tail = Optional.of(layer);
     return this;
   }
 
@@ -91,52 +95,53 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       CNNTrainingSession session) {
     for (int epoch = 0; epoch < epochs; epoch++) {
       session.setCurrentEpoch(epoch + 1);
-      
+
+      LongAdder correctPredictions = new LongAdder();
+      LongAdder totalSamples = new LongAdder();
+
       int currentBatch = 0;
       for (int batchStart = 0; batchStart < x.length; batchStart += batchSize) {
         currentBatch++;
         session.setCurrentBatch(currentBatch);
-
-        int batchEnd = Math.min(batchStart + batchSize, x.length);
-        AtomicReference<double[][][]> accumulatedGradient = new AtomicReference<>();
-
         if (currentBatch % 10 == 0) {
           System.out.print("\r Epoch:" + session.getCurrentEpoch() + " batch:" + currentBatch);
         }
 
-        IntStream.range(batchStart, batchEnd).parallel().forEach(i -> {
-          double[] output = forward(x[i]);
-          double[][][] gradient = convertTo3D(lossFunction.calculateGradient(output, y[i]), output.length, 1, 1);
-          session.setLoss(lossFunction.calculateLoss(output, y[i]));
+        int batchEnd = Math.min(batchStart + batchSize, x.length);
+        int currentBatchSize = batchEnd - batchStart;
 
-          synchronized (accumulatedGradient){
-            if (accumulatedGradient.get() == null){
-              accumulatedGradient.set(gradient);
-            }
-            else{
-              double[][][] current = accumulatedGradient.get();
-              for (int d = 0; d < gradient.length; d++) {
-                for (int h = 0; h < gradient[0].length; h++) {
-                  for (int w = 0; w < gradient[0][0].length; w++) {
-                    current[d][h][w] += gradient[d][h][w];
-                  }
-                }
+        DoubleAdder batchLoss = new DoubleAdder();
+
+        // Foward pass
+        double[][][] accumulatedGradient = IntStream.range(batchStart, batchEnd)
+            .parallel()
+            .mapToObj(i -> {
+              double[] output = forward(x[i]);
+
+              batchLoss.add(
+                  lossFunction.calculateLoss(output, y[i]) / currentBatchSize);
+
+              int predicted = getMaxIndex(output);
+              int actual = getMaxIndex(y[i]);
+              if (predicted == actual) {
+                correctPredictions.increment();
               }
-              accumulatedGradient.set(current);
-            }
-          }
+              totalSamples.increment();
 
-        });
-        if (head.isPresent()) {
-          LayerBase current = head.get();
-          while (current.next.isPresent()) {
-            current = current.next.get();
-          }
-          while (current != null) {
-            accumulatedGradient.set(current.backward(accumulatedGradient.get(), learningRate));
-            current = current.prev.orElse(null);
-          }
+              return convertTo3D(
+                  lossFunction.calculateGradient(output, y[i]),
+                  output.length, 1, 1);
+            })
+            .reduce(this::addGradients)
+            .orElseThrow();
+
+        session.setLoss(batchLoss.sum() / (currentBatchSize));
+        // Apply backward propagation
+        for (LayerBase layer = tail.get(); layer != null; layer = layer.prev.orElse(null)) {
+          accumulatedGradient = (layer.backward(accumulatedGradient, learningRate / currentBatchSize));
         }
+        double accuracy = correctPredictions.sum() / (double) totalSamples.sum();
+        session.setAccuracy(accuracy);
       }
     }
   }
@@ -179,5 +184,35 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
       }
     }
     return result;
+  }
+
+  private double[][][] addGradients(double[][][] a, double[][][] b) {
+    if (a == null)
+      return b;
+    if (b == null)
+      return a;
+
+    double[][][] result = new double[a.length][a[0].length][a[0][0].length];
+
+    for (int d = 0; d < a.length; d++) {
+      for (int h = 0; h < a[0].length; h++) {
+        for (int w = 0; w < a[0][0].length; w++) {
+          result[d][h][w] = a[d][h][w] + b[d][h][w];
+        }
+      }
+    }
+    return result;
+  }
+
+  private int getMaxIndex(double[] input) {
+    int maxIndex = 0;
+    double maxValue = input[0];
+    for (int i = 1; i < input.length; i++) {
+      if (input[i] > maxValue) {
+        maxValue = input[i];
+        maxIndex = i;
+      }
+    }
+    return maxIndex;
   }
 }

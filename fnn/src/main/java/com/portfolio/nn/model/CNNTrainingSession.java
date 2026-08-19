@@ -28,7 +28,7 @@ public class CNNTrainingSession {
   private double loss;
   private final String modelId;
   private final String trainingData;
-  private final ConvolutionalNetwork network;
+  private final transient ConvolutionalNetwork network;
   private final long startTime = System.currentTimeMillis();
   private boolean isRunning;
 
@@ -67,7 +67,7 @@ public class CNNTrainingSession {
     this.currentEpoch = 0;
     this.currentBatch = 0;
     this.accuracy = 0.0;
-    this.isRunning = false;
+    this.isRunning = true;
   }
 
   /**

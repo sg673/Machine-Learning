@@ -102,6 +102,10 @@ public abstract class LayerBase {
     return new int[] { outputWidth, outputHeight, outputDepth };
   }
 
+  public int[] getInputShape(){
+    return new int[] { inputWidth, inputHeight, inputDepth };
+  }
+
   /**
    * Computes the output tensor dimensions based on the input shape.
    * Must be implemented by subclasses to define layer-specific shape

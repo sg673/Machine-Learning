@@ -1,16 +1,33 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { LayerPalette } from './LayerPalette';
 import { CanvasArea } from './CanvasArea';
 import { LayerProperties } from './LayerProperties';
 import { ModelExport } from './ModelExport';
 import type { Layer, LayerType, CNNModel } from './types';
+import { DATASET_CONFIG } from '../services/constants';
 
-export function ModelBuilder() {
+interface ModelBuilderProps {
+  existingModel?: CNNModel;
+  onModelSaved?: (model: CNNModel) => void;
+}
+
+export function ModelBuilder({ existingModel, onModelSaved }: ModelBuilderProps = {}) {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [selectedLayer, setSelectedLayer] = useState<Layer | null>(null);
   const [draggedLayer, setDraggedLayer] = useState<LayerType | null>(null);
   const [modelName, setModelName] = useState('');
+  const [selectedDataset, setSelectedDataset] = useState<keyof typeof DATASET_CONFIG>("MNIST");
+  const [modelId, setModelId] = useState<string | undefined>(existingModel?.modelId);
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (existingModel) {
+      setLayers(existingModel.layers);
+      setModelName(existingModel.name);
+      setModelId(existingModel.modelId);
+      setSelectedDataset(existingModel.trainingData as keyof typeof DATASET_CONFIG);
+    }
+  }, [existingModel]);
 
   const addLayer = useCallback((layerType: LayerType, position: { x: number; y: number }) => {
     const newLayer: Layer = {
@@ -24,11 +41,11 @@ export function ModelBuilder() {
   }, []);
 
   const updateLayer = useCallback((layerId: string, updates: Partial<Layer>) => {
-    setLayers(prev => prev.map(layer => 
+    setLayers(prev => prev.map(layer =>
       layer.id === layerId ? { ...layer, ...updates } : layer
     ));
     // Update selected layer if it's the one being updated
-    setSelectedLayer(prev => 
+    setSelectedLayer(prev =>
       prev?.id === layerId ? { ...prev, ...updates } : prev
     );
   }, []);
@@ -39,8 +56,8 @@ export function ModelBuilder() {
   }, []);
 
   const connectLayers = useCallback((fromId: string, toId: string) => {
-    setLayers(prev => prev.map(layer => 
-      layer.id === fromId 
+    setLayers(prev => prev.map(layer =>
+      layer.id === fromId
         ? { ...layer, connections: [...layer.connections, toId] }
         : layer
     ));
@@ -49,23 +66,24 @@ export function ModelBuilder() {
   const buildModel = useCallback((): CNNModel => {
     const sortedLayers = topologicalSort(layers);
     return {
+      modelId: modelId,
       name: modelName || 'Untitled Model',
       layers: sortedLayers,
-      inputShape: getInputShape(sortedLayers[0]),
+      inputShape: DATASET_CONFIG[selectedDataset].inputShape,
       outputSize: getOutputSize(sortedLayers[sortedLayers.length - 1]),
-      trainingData: 'MNIST' // TODO Placeholder, can be dynamic
+      trainingData: selectedDataset // TODO Placeholder, can be dynamic
     };
-  }, [layers, modelName]);
+  }, [layers, modelName, selectedDataset, modelId]);
 
   return (
     <div className="h-screen flex bg-bg">
-      <LayerPalette 
+      <LayerPalette
         onDragStart={setDraggedLayer}
         onDragEnd={() => setDraggedLayer(null)}
       />
-      
+
       <div className="flex-1 flex flex-col">
-        <div className="bg-bg-alt border-b border-border p-4">
+        <div className="bg-bg-alt border-b border-border p-4 flex gap-4 items-center">
           <input
             type="text"
             placeholder="Model Name"
@@ -73,8 +91,25 @@ export function ModelBuilder() {
             onChange={(e) => setModelName(e.target.value)}
             className="px-3 py-2 bg-bg border border-border rounded text-text-col"
           />
+          <div className="flex items-center gap-2">
+            <label className="text-text-col-alt text-sm font-medium">
+              Dataset:
+            </label>
+            <select
+              value={selectedDataset}
+              onChange={(e) => setSelectedDataset(e.target.value as keyof typeof DATASET_CONFIG)}
+              className="px-3 py-2 bg-bg border border-border rounded text-text-col ml-4"
+            >
+              {Object.keys(DATASET_CONFIG).map(dataset => (
+                <option key={dataset} value={dataset}>{dataset}</option>
+              ))}
+            </select>
+          </div>
+          {existingModel && (
+            <span className="text-text-col-alt text-sm">Editing Model</span>
+          )}
         </div>
-        
+
         <CanvasArea
           ref={canvasRef}
           layers={layers}
@@ -99,7 +134,8 @@ export function ModelBuilder() {
         ) : (
           <ModelExport
             model={buildModel()}
-            onExport={(model) => console.log('Export model:', model)}
+            isEditing={!!existingModel}
+            onExport={onModelSaved || ((model) => console.log("Export model:",model))}
           />
         )}
       </div>
@@ -129,26 +165,21 @@ function getDefaultConfig(layerType: LayerType): Record<string, string | number>
 function topologicalSort(layers: Layer[]): Layer[] {
   const visited = new Set<string>();
   const result: Layer[] = [];
-  
+
   function visit(layer: Layer) {
     if (visited.has(layer.id)) return;
     visited.add(layer.id);
-    
+
     layer.connections.forEach(connId => {
       const connLayer = layers.find(l => l.id === connId);
       if (connLayer) visit(connLayer);
     });
-    
+
     result.unshift(layer);
   }
-  
+
   layers.forEach(layer => visit(layer));
   return result;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getInputShape(_layer?: Layer): [number, number, number] {
-  return [28, 28, 1]; // Default MNIST shape
 }
 
 function getOutputSize(layer?: Layer): number {

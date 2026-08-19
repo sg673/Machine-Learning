@@ -26,6 +26,16 @@ public class CNNModelService {
     return repo.save(model);
   }
 
+  public boolean updateModel(String id, CNNModel model){
+    Optional<CNNModel> existingModel = repo.findById(id);
+    if(existingModel.isPresent()){
+      repo.save(model);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   public boolean deleteById(String id){
     Optional<CNNModel> model = repo.findById(id);
     if(model.isPresent()){
