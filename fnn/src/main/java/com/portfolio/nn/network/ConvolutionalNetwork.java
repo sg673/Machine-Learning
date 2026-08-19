@@ -215,4 +215,16 @@ public class ConvolutionalNetwork implements NeuralNetworkBase {
     }
     return maxIndex;
   }
+
+  //Functions for testing purposes only
+  public double[][][] addGradientsTest(double[][][] a, double[][][] b){
+    return addGradients(a,b);
+  }
+
+  public double[][][] convertTo3DTest(double[] input, int depth, int height, int width){
+    return convertTo3D(input, depth, height, width);
+  }
+  public double[] flattenTest(double[][][] tensor){
+    return flatten(tensor);
+  }
 }
